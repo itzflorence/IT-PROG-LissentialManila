@@ -30,18 +30,17 @@
     flex: 1;
 }
 
-
 .sidebar {
     position: fixed;
     left: 0;
     top: 60px;
     height: 100%;
-    width: 150px;
+    width: 250px;
     padding: var(--space-small);
 
     display: flex;
     flex-direction: column;
-    
+
     background-color: var(--color2);
     border-right: 1px solid var(--color3);
 
@@ -52,14 +51,69 @@
     position: fixed;
     right: 0;
     top: 60px;
-    width: 100px;
-    
+    width: 330px;
+    height: 100%;
+    background-color: var(--color3);
+    border-radius: 15px;
+
+    margin: var(--space-medium);
+}
+
+.create-report button {
+    width: 100%;
+    padding: var(--space-small);
+    font-weight: 600;
+    font-size: var(--font-small);
+    border-radius: 8px;
+
+    box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+}
+
+.sidebar-options-wrapper {
+    display: flex;
+    flex-direction: column;
+    /* gap between the title and the options */
+    gap: var(--space-xsmall);
+
+    & hr {
+        height: 1px;
+        border: none;
+        background-color: var(--color3);
+    }
+}
+
+.sidebar-title {
+    color: var(--color4);
+    font-size: var(--font-small);
+    padding-top: var(--space-xsmall);
+    font-weight: 600;
+}
+
+.sidebar-options {
+    display: flex;
+    flex-direction: column;
+}
+
+
+.sidebar-options a {
+    outline: none;
+    padding: var(--space-xsmall);
+    text-decoration: none;
+    color: var(--colorText);
+    font-size: var(--font-medium);
+    transition: 0.1s ease-out;
+}
+
+.sidebar-options a:hover {
+    background-color: var(--color3);
+    border-radius: 8px;
 }
 
 .main-wrapper {
     margin-top: 60px; /* Pushes content down past the navbar height */
-    margin-left: 150px; /* Pushes content right past the sidebar width */
-    
+    margin-left: 250px; /* Pushes content right past the sidebar width */
+    margin-right: 330px; /* Pushes content right past the threads width */
+
     min-height: calc(100vh - 60px); /* Ensures main takes up the rest of the screen */
 
     display: flex;
@@ -68,6 +122,18 @@
 
 main {
     display: flex;
+    flex-direction: column;
     width: 80%;
     background-color: var(--color2);
+    justify-content: center;
+    align-items: center;
+    padding: var(--space-small);
+}
+
+hr {
+    height: 1px;
+    width: 100%;
+    border: none;
+    background-color: var(--color3);
+    margin: var(--space-medium);
 }

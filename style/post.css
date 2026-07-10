@@ -1,0 +1,116 @@
+@import url(global.css);
+
+.post {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: var(--space-medium);
+    border-radius: 8px;
+    transition: 0.1s ease-out;
+}
+
+.post:hover {
+    background-color: color-mix(in srgb, var(--color3) 50%, transparent);
+}
+
+/* PROFILE DETAILS */
+.profile-details {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 5px;
+    color: var(--color4);
+}
+
+.post-pfp {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-right: 5px;
+}
+
+.post-pfp img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.username {
+    color: var(--colorText);
+}
+
+/* POST DETAILS */
+.post-details {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+}
+
+.post-details-box {
+    flex: 2;
+    background-color: var(--color3);
+    border-radius: 8px;
+    padding: 5px;
+    color: var(--color4);
+    font-weight: 600;
+    box-shadow: rgba(17, 17, 26, 0.1) 0px 1px 0px;
+}
+
+.post-details-box-category { flex: 1; }
+
+.post-details-box span {
+    font-weight: 100;
+}
+
+.post-description {
+    display: block;
+    text-align: justify;
+    text-align-last: left;
+    color: var(--color4);
+}
+
+.post-image {
+    width: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: rgba(17, 17, 26, 0.05) 0px 1px 0px, rgba(17, 17, 26, 0.1) 0px 0px 8px;
+}
+
+.post-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.post-buttons {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.post-buttons button {
+    border-radius: 8px;
+}
+
+.post-buttons-left, .post-buttons-right {
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+}
+
+.post-buttons-left button {
+    cursor: pointer;
+    border: none;
+}
+
+.post-buttons-left button { background-color: var(--color4); box-shadow: rgba(17, 17, 26, 0.1) 0px 1px 0px; }
+.post-buttons-right .verified {
+    background-color: var(--colorRed);
+    box-shadow: rgba(17, 17, 26, 0.1) 0px 1px 0px;
+    font-style: italic;
+}
+.post-buttons-right .status { background-color: var(--colorBlue); box-shadow: rgba(17, 17, 26, 0.1) 0px 1px 0px;}

@@ -19,6 +19,13 @@
     --space-medium: clamp(0.75rem, 0.6rem + 0.8vw, 1.5rem);   /* 12 → 24px */
     --space-large:  clamp(1.25rem, 1rem + 1vw, 2.5rem);       /* 20 → 40px */
     --space-xlarge: clamp(2rem, 1.5rem + 2vw, 4rem);          /* 32 → 64px */
+    /* Responsive Font Scale */
+    --font-xsmall:  clamp(0.75rem, 0.72rem + 0.15vw, 0.875rem); /* 12 → 14px */
+    --font-small:   clamp(0.875rem, 0.83rem + 0.2vw, 1rem);     /* 14 → 16px */
+    --font-medium:  clamp(1rem, 0.95rem + 0.3vw, 1.125rem);     /* 16 → 18px */
+    --font-large:   clamp(1.25rem, 1.1rem + 0.6vw, 1.75rem);    /* 20 → 28px */
+    --font-xlarge:  clamp(1.75rem, 1.4rem + 1vw, 2.5rem);       /* 28 → 40px */
+    --font-xxlarge: clamp(2.25rem, 1.8rem + 1.5vw, 3.5rem);     /* 36 → 56px */
 }
 
 * {
@@ -56,8 +63,4 @@ button {
     color: var(--color1);
     font-weight: 500;
     padding: var(--space-xsmall);
-} 
-
-main {
-  padding: var(--space-large);
 }
