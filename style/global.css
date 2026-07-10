@@ -1,0 +1,63 @@
+@import url('https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap');
+@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css");
+
+:root {
+    --color1:       #ffffff;
+    --color2:       #fbfbfb;
+    --color3:       #ebebeb;
+    --color4:       #707070;
+    --color5:       #222222;
+    --colorText:    #1a1a1a;
+    --colorBlue:    #5ca3ff;
+    --colorRed:     #cd474b;
+    --colorYellow:  #febc01;
+    --colorGreen:   #34622f;
+
+    /* Responsive Spacing Scale */
+    --space-xsmall: clamp(0.25rem, 0.2rem + 0.3vw, 0.5rem);   /* 4 → 8px */
+    --space-small:  clamp(0.5rem, 0.4rem + 0.5vw, 0.75rem);   /* 8 → 12px */
+    --space-medium: clamp(0.75rem, 0.6rem + 0.8vw, 1.5rem);   /* 12 → 24px */
+    --space-large:  clamp(1.25rem, 1rem + 1vw, 2.5rem);       /* 20 → 40px */
+    --space-xlarge: clamp(2rem, 1.5rem + 2vw, 4rem);          /* 32 → 64px */
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Google Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+}
+
+body {
+  background-color: var(--color1);
+  color: var(--colorText);
+}
+
+/* Optional: different weights for different elements */
+h1, h2, h3 {
+  font-weight: 700;
+}
+
+p, body {
+  font-weight: 400;
+}
+
+strong, .bold {
+  font-weight: 600;
+}
+
+button {
+    border: none;
+    border-radius: 8;
+    background-color: var(--color5);
+    color: var(--color1);
+    font-weight: 500;
+    padding: var(--space-xsmall);
+} 
+
+main {
+  padding: var(--space-large);
+}
