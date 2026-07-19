@@ -1,17 +1,17 @@
 -- CREATE DATABASE lissential_manila_db;
 
--- LOCATIONS TABLE : Centralized locations (city + barangay combinations)
--- Data is fixed by 'locations.sql'
+-- LOCATIONS TABLE : Centralized locations (city + district combinations)
+-- NOTES: DISTRICT can also be BARANGAY. Data is fixed by 'locations.sql'
 CREATE TABLE locations (
     location_id INT AUTO_INCREMENT PRIMARY KEY,
     city VARCHAR(50) NOT NULL,
-    barangay VARCHAR(100) NOT NULL,
+    district VARCHAR(100) NOT NULL,
     landmark VARCHAR(100), -- optional / if applicable
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     
-    -- Prevent duplicate city-barangay pairs
-    UNIQUE KEY unique_location (city, barangay)
+    -- Prevent duplicate city-district pairs
+    UNIQUE KEY unique_location (city, district)
 );
 
 
@@ -32,7 +32,6 @@ INSERT INTO categories (category_name, requires_description) VALUES
 ('Road Blockage', FALSE),
 ('Construction', FALSE),
 ('Stalled Vehicle', FALSE),
-('Debris', FALSE),
 ('Traffic Light', FALSE),
 ('Public Transport', FALSE),
 ('Other', TRUE);
@@ -159,21 +158,6 @@ CREATE TABLE upvotes (
     
     -- Prevent duplicate upvotes: one user can only upvote a report once
     UNIQUE KEY unique_upvote (user_id, report_id),
-    
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-    FOREIGN KEY (report_id) REFERENCES reports(report_id) ON DELETE CASCADE
-);
-
--- SAVED_REPORTS TABLE : Users can save/bookmark reports they want to view later
-CREATE TABLE saved_reports (
-    saved_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    report_id INT NOT NULL,
-    
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
-    -- Prevent duplicate saves: one user can only save a report once
-    UNIQUE KEY unique_save (user_id, report_id),
     
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (report_id) REFERENCES reports(report_id) ON DELETE CASCADE

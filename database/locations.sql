@@ -1,7 +1,5 @@
--- INSERT famous barangays for Manila, Pasay, Caloocan, and Quezon City
-
--- MANILA (Districts)
-INSERT INTO locations (city, barangay) VALUES
+-- Manila (administrative districts: historic hearts, u-belt, shipping ports)
+INSERT INTO locations (city, district) VALUES
 ('Manila', 'Tondo'),
 ('Manila', 'Sampaloc'),
 ('Manila', 'Santa Cruz'),
@@ -15,22 +13,24 @@ INSERT INTO locations (city, barangay) VALUES
 ('Manila', 'Port Area'),
 ('Manila', 'Ermita'),
 ('Manila', 'San Miguel'),
+('Manila', 'Santa Mesa'),
 ('Manila', 'Intramuros');
 
--- PASAY (Districts)
-INSERT INTO locations (city, barangay) VALUES
+-- Pasay (commercial hubs neighborhoods: business bays, terminal towns, heritage rows)
+INSERT INTO locations (city, district) VALUES
 ('Pasay', 'Baclaran'),
-('Pasay', 'San Antonio'),
-('Pasay', 'Don Bosco'),
-('Pasay', 'Kawayan'),
-('Pasay', 'Tambo'),
+('Pasay', 'Bay City'),
+('Pasay', 'CCP Complex'),
 ('Pasay', 'Libertad'),
 ('Pasay', 'Malibay'),
-('Pasay', 'Villamor'),
-('Pasay', 'Kalayaan Village'),
+('Pasay', 'Maricaban'),
+('Pasay', 'Newport City'),
+('Pasay', 'Pasay Rotonda'),
+('Pasay', 'Tramo'),
+('Pasay', 'Villamor');
 
--- CALOOCAN (Popular/Largest barangays)
-INSERT INTO locations (city, barangay) VALUES
+-- Caloocan (barangays neighborhoods: industrial parks, northern borders, crowded hubs)
+INSERT INTO locations (city, district) VALUES
 ('Caloocan', 'Tala'),
 ('Caloocan', 'Caloocan Pob.'),
 ('Caloocan', 'Urduja'),
@@ -38,35 +38,35 @@ INSERT INTO locations (city, barangay) VALUES
 ('Caloocan', 'Monumento'),
 ('Caloocan', 'Bagong Silang'),
 ('Caloocan', 'Baesa'),
-('Caloocan', 'Marulas'),
+('Caloocan', 'Camarin'),
 ('Caloocan', 'Grace Park West'),
 ('Caloocan', 'Sangandaan'),
 ('Caloocan', 'Malaria'),
 ('Caloocan', 'Llano');
 
--- QUEZON CITY (Most famous/largest barangays)
-INSERT INTO locations (city, barangay) VALUES
+-- Quezon City (districts barangays: giant residential tracts, government centers, culinary rows)
+INSERT INTO locations (city, district) VALUES
 ('Quezon City', 'Commonwealth'),
 ('Quezon City', 'Batasan Hills'),
 ('Quezon City', 'Payatas'),
 ('Quezon City', 'Matandang Balara'),
-('Quezon City', 'Tandang Sora'),
-('Quezon City', 'Bahay Toro'),
-('Quezon City', 'Bagbag'),
+('Quezon City', 'Tandangsora'),
+('Quezon City', 'Cubao'),
+('Quezon City', 'Diliman'),
 ('Quezon City', 'Fairview'),
-('Quezon City', 'Nagkaisang Nayon'),
-('Quezon City', 'Kaligayahan'),
+('Quezon City', 'Katipunan'),
+('Quezon City', 'Kamuning'),
 ('Quezon City', 'Culiat'),
-('Quezon City', 'Pasong Tamo'),
+('Quezon City', 'Project 8'),
 ('Quezon City', 'Novaliches Proper'),
 ('Quezon City', 'UP Campus'),
 ('Quezon City', 'Loyola Heights'),
-('Quezon City', 'San Antonio'),
-('Quezon City', 'Baesa'),
-('Quezon City', 'Pansol');
+('Quezon City', 'Timog'),
+('Quezon City', 'Banawe'),
+('Quezon City', 'New Manila');
 
--- TAGUIG (Popular/largest barangays)
-INSERT INTO locations (city, barangay) VALUES
+-- Taguig (barangays commercial centers: business districts, residential sprawls, military complexes)
+INSERT INTO locations (city, district) VALUES
 ('Taguig', 'Western Bicutan'),
 ('Taguig', 'Lower Bicutan'),
 ('Taguig', 'Pinagsama'),
@@ -81,8 +81,8 @@ INSERT INTO locations (city, barangay) VALUES
 ('Taguig', 'Central Bicutan'),
 ('Taguig', 'South Signal Village');
 
--- VALENZUELA (Popular/largest barangays)
-INSERT INTO locations (city, barangay) VALUES
+-- Valenzuela (barangays: sprawling factories, industrial estates, urban residential communities)
+INSERT INTO locations (city, district) VALUES
 ('Valenzuela', 'General T. de Leon'),
 ('Valenzuela', 'Ugong'),
 ('Valenzuela', 'Marulas'),
@@ -92,20 +92,20 @@ INSERT INTO locations (city, barangay) VALUES
 ('Valenzuela', 'Canumay West'),
 ('Valenzuela', 'Dalandanan');
 
--- PASIG (Popular/largest barangays)
-INSERT INTO locations (city, barangay) VALUES
-('Pasig', 'Pinagbuhatan'),
-('Pasig', 'Manggahan'),
-('Pasig', 'Rosario'),
+-- Pasig (barangays business hubs: corporate centers, foodie neighborhoods, busy riversides)
+INSERT INTO locations (city, district) VALUES
+('Pasig', 'Ortigas'),
+('Pasig', 'Pasig CBD'),
+('Pasig', 'Kapitolyo'),
 ('Pasig', 'Santolan'),
-('Pasig', 'Santa Lucia'),
+('Pasig', 'Manggahan'),
 ('Pasig', 'Maybunga'),
-('Pasig', 'Kalawaan'),
-('Pasig', 'Caniogan'),
-('Pasig', 'San Miguel');
+('Pasig', 'San Joaquin'),
+('Pasig', 'Rosario'),
+('Pasig', 'Pasig Pob.');
 
--- MANDALUYONG (Popular/largest barangays)
-INSERT INTO locations (city, barangay) VALUES
+-- Mandaluyong (barangays: corporate towers, high-rise condominiums, dense city grids)
+INSERT INTO locations (city, district) VALUES
 ('Mandaluyong', 'Addition Hills'),
 ('Mandaluyong', 'Highway Hills'),
 ('Mandaluyong', 'Mandaluyong Pob.'),
@@ -113,8 +113,8 @@ INSERT INTO locations (city, barangay) VALUES
 ('Mandaluyong', 'Hulo'),
 ('Mandaluyong', 'Barangka Drive');
 
--- MAKATI (Popular/largest barangays)
-INSERT INTO locations (city, barangay) VALUES
+-- Makati (barangays villages: financial hubs, gated communities, residential fringes)
+INSERT INTO locations (city, district) VALUES
 ('Makati', 'Makati Pob.'),
 ('Makati', 'Pio del Pilar'),
 ('Makati', 'Bel-Air'),
@@ -124,8 +124,8 @@ INSERT INTO locations (city, barangay) VALUES
 ('Makati', 'Guadalupe Nuevo'),
 ('Makati', 'Forbes Park');
 
--- MALABON (Popular/largest barangays)
-INSERT INTO locations (city, barangay) VALUES
+-- Malabon (barangays: heritage sites, coastal towns, flood-prone communities)
+INSERT INTO locations (city, district) VALUES
 ('Malabon', 'Longos'),
 ('Malabon', 'Potrero'),
 ('Malabon', 'Tonsuya'),
@@ -135,8 +135,8 @@ INSERT INTO locations (city, barangay) VALUES
 ('Malabon', 'San Agustin'),
 ('Malabon', 'Dampalit');
 
--- SAN JUAN (Popular/largest barangays)
-INSERT INTO locations (city, barangay) VALUES
+-- San Juan (barangays: upscale shopping hubs, historic monuments, peaceful pockets)
+INSERT INTO locations (city, district) VALUES
 ('San Juan', 'West Crame'),
 ('San Juan', 'Greenhills'),
 ('San Juan', 'Salapan'),
@@ -145,8 +145,8 @@ INSERT INTO locations (city, barangay) VALUES
 ('San Juan', 'Corazon de Jesus'),
 ('San Juan', 'Little Baguio');
 
--- LAS PIÑAS (Popular/largest barangays)
-INSERT INTO locations (city, barangay) VALUES
+-- Las Piñas (barangays: massive suburban subdivisions, highway strips, coastal borders)
+INSERT INTO locations (city, district) VALUES
 ('Las Piñas', 'BF International Village-CAA'),
 ('Las Piñas', 'Talon Uno'),
 ('Las Piñas', 'Talon Dos'),
@@ -158,8 +158,8 @@ INSERT INTO locations (city, barangay) VALUES
 ('Las Piñas', 'Pamplona Tres'),
 ('Las Piñas', 'Zapote');
 
--- NAVOTAS (Popular/largest barangays)
-INSERT INTO locations (city, barangay) VALUES
+-- Navotas (barangays: maritime ports, fish markets, coastal harbor rows)
+INSERT INTO locations (city, district) VALUES
 ('Navotas', 'NBBS Kaunlaran'),
 ('Navotas', 'San Jose'),
 ('Navotas', 'San Roque'),
@@ -168,8 +168,8 @@ INSERT INTO locations (city, barangay) VALUES
 ('Navotas', 'Tanza 1'),
 ('Navotas', 'Tanza 2');
 
--- MARIKINA (Popular/largest barangays)
-INSERT INTO locations (city, barangay) VALUES
+-- Marikina (barangays: low-lying valleys, shoe capitals, quiet family suburbs)
+INSERT INTO locations (city, district) VALUES
 ('Marikina', 'Malanday'),
 ('Marikina', 'Tumana'),
 ('Marikina', 'Concepcion Uno'),
@@ -179,8 +179,8 @@ INSERT INTO locations (city, barangay) VALUES
 ('Marikina', 'Santo Niño'),
 ('Marikina', 'San Roque');
 
--- PARAÑAQUE (Popular/largest barangays)
-INSERT INTO locations (city, barangay) VALUES
+-- Parañaque (barangays: sprawling suburbs, airport lanes, entertainment gaming cities)
+INSERT INTO locations (city, district) VALUES
 ('Parañaque', 'BF Homes'),
 ('Parañaque', 'Moonwalk'),
 ('Parañaque', 'San Antonio'),
@@ -191,8 +191,8 @@ INSERT INTO locations (city, barangay) VALUES
 ('Parañaque', 'Baclaran'),
 ('Parañaque', 'Tambo');
 
--- PATEROS (All barangays - small city)
-INSERT INTO locations (city, barangay) VALUES
+-- Pateros (barangays: small interior towns, duck farming alleys, local food sectors)
+INSERT INTO locations (city, district) VALUES
 ('Pateros', 'Pateros Pob.'),
 ('Pateros', 'Aguho'),
 ('Pateros', 'Tabacalera'),
@@ -200,8 +200,8 @@ INSERT INTO locations (city, barangay) VALUES
 ('Pateros', 'Santa Ana'),
 ('Pateros', 'Santo Rosario Kanluran');
 
--- MUNTINLUPA (Popular/largest barangays)
-INSERT INTO locations (city, barangay) VALUES
+-- Muntinlupa (barangays: elite neighborhoods, high-end commercial estates, southern borders)
+INSERT INTO locations (city, district) VALUES
 ('Muntinlupa', 'Muntinlupa Pob.'),
 ('Muntinlupa', 'Putatan'),
 ('Muntinlupa', 'Alabang'),

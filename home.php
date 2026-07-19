@@ -13,26 +13,41 @@
 </head>
 
 <body>
-    <!-- NAVIGATION BAR (HEADER AND ASIDE) -->
+    <!-- NAVIGATION BAR AND SIDE BAR -->
     <nav>
         <header class="navbar">
-            <div class="logo">LOGO</div>
+            <div class="navbar-logo"><img src="assets\LOGO\logo_normal.png" alt=""></div>
 
-            <input type="search" placeholder="Search what you need...">
+            <div class="searchbar">
+                <input type="search" placeholder="Search what you need...">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </div>
 
-            <button type="icon-button">
-                <i class="fa-solid fa-bell"></i>
-            </button>
+            <div class="icon-button-wrapper">
+                <button type="button" class="icon-button">
+                    <i class="fa-solid fa-bell"></i>
+                </button>
 
-            <button type="icon-button">
-                <i class="fa-solid fa-user"></i>
-            </button>
+                <button type="button" class="icon-button">
+                    <i class="fa-solid fa-user"></i>
+                </button>
+            </div>
         </header>
 
         <aside class="sidebar">
             <div class="create-report">
                 <button>CREATE REPORT</button>
             </div>
+
+            <div class="sidebar-options-wrapper">
+                <span class="sidebar-title">MY ACTIVITY</span>
+                <div class="sidebar-options">
+                    <a href="#">My Reports</a>
+                    <a href="#">Reports Near Me</a>
+                </div>
+                <hr>
+            </div>
+
 
             <div class="sidebar-options-wrapper">
                 <span class="sidebar-title">THREADS</span>
@@ -47,20 +62,15 @@
             <div class="sidebar-options-wrapper">
                 <span class="sidebar-title">CATEGORIES</span>
                 <div class="sidebar-options">
-                    <a href="#">Flooding</a>
                     <a href="#">Car Crash</a>
+                    <a href="#">Traffic Congestion</a>
+                    <a href="#">Flooding</a>
                     <a href="#">Road Blockage</a>
                     <a href="#">Construction</a>
+                    <a href="#">Stalled Vehicle</a>
+                    <a href="#">Traffic Light</a>
+                    <a href="#">Public Transport</a>
                     <a href="#">Other</a>
-                </div>
-                <hr>
-            </div>
-
-            <div class="sidebar-options-wrapper">
-                <span class="sidebar-title">MY ACTIVITY</span>
-                <div class="sidebar-options">
-                    <a href="#">My Reports</a>
-                    <a href="#">Saved Reports</a>
                 </div>
             </div>
         </aside>
@@ -72,6 +82,7 @@
 
     <div class="main-wrapper">
         <main>
+            <!--------------------------------- POST --------------------------------->
             <section class="post">
                 <div class="profile-details">
                     <div class="post-pfp"><img src="assets/user_images/mj.jpg" alt=""></div>
@@ -102,7 +113,9 @@
 
                 <div class="post-title-and-description">
                     <h2><span class="post-title">Traffic congested Near Alabang SLEX Southbound</span></h2>
-                    <span class="post-description">Heavy traffic buildup on SLEX Southbound near the Alabang exit. Appears to be caused by a stalled vehicle blocking the rightmost lane. Traffic is backing up approximately 3km. Avoid this route and use alternative roads. MMDA on the scene.</span>
+                    <span class="post-description">Heavy traffic buildup on SLEX Southbound near the Alabang exit.
+                        Appears to be caused by a stalled vehicle blocking the rightmost lane. Traffic is backing up
+                        approximately 3km. Avoid this route and use alternative roads. MMDA on the scene.</span>
                 </div>
 
                 <div class="post-image">
@@ -138,9 +151,10 @@
                     </div>
                 </div>
             </section>
-        
+
             <hr>
-        
+
+            <!--------------------------------- POST --------------------------------->
             <section class="post">
                 <div class="profile-details">
                     <div class="post-pfp"><img src="mj.jpg" alt=""></div>
@@ -171,7 +185,9 @@
 
                 <div class="post-title-and-description">
                     <h2><span class="post-title">Traffic congested Near Alabang SLEX Southbound</span></h2>
-                    <span class="post-description">Heavy traffic buildup on SLEX Southbound near the Alabang exit. Appears to be caused by a stalled vehicle blocking the rightmost lane. Traffic is backing up approximately 3km. Avoid this route and use alternative roads. MMDA on the scene.</span>
+                    <span class="post-description">Heavy traffic buildup on SLEX Southbound near the Alabang exit.
+                        Appears to be caused by a stalled vehicle blocking the rightmost lane. Traffic is backing up
+                        approximately 3km. Avoid this route and use alternative roads. MMDA on the scene.</span>
                 </div>
 
                 <div class="post-image">
