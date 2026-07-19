@@ -74,7 +74,7 @@
         <main>
             <section class="post">
                 <div class="profile-details">
-                    <div class="post-pfp"><img src="mj.jpg" alt=""></div>
+                    <div class="post-pfp"><img src="assets/user_images/mj.jpg" alt=""></div>
                     <span class="username">Michael Jackson</span> <!-- to be changed -->
                     <span>•</span>
                     <span class="hours-ago">36 mins ago</span>
@@ -106,7 +106,7 @@
                 </div>
 
                 <div class="post-image">
-                    <img src="images.jpg" alt="">
+                    <img src="assets/report_media/media1.jpg" alt="">
                 </div>
 
                 <div class="post-buttons">
