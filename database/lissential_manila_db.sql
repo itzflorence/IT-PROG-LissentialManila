@@ -1,5 +1,42 @@
 -- CREATE DATABASE lissential_manila_db;
 
+-- LOCATIONS TABLE : Centralized locations (city + barangay combinations)
+-- Data is fixed by 'locations.sql'
+CREATE TABLE locations (
+    location_id INT AUTO_INCREMENT PRIMARY KEY,
+    city VARCHAR(50) NOT NULL,
+    barangay VARCHAR(100) NOT NULL,
+    landmark VARCHAR(100), -- optional / if applicable
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Prevent duplicate city-barangay pairs
+    UNIQUE KEY unique_location (city, barangay)
+);
+
+
+-- CATEGORIES TABLE : Centralized list of incident types
+CREATE TABLE categories (
+    category_id INT AUTO_INCREMENT PRIMARY KEY,
+    category_name VARCHAR(50) NOT NULL UNIQUE, 
+    requires_description BOOLEAN DEFAULT FALSE, -- Only Other requires description
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Insert incident categories
+INSERT INTO categories (category_name, requires_description) VALUES
+('Car Crash', FALSE),
+('Traffic Congestion', FALSE),
+('Flooding', FALSE),
+('Road Blockage', FALSE),
+('Construction', FALSE),
+('Stalled Vehicle', FALSE),
+('Debris', FALSE),
+('Traffic Light', FALSE),
+('Public Transport', FALSE),
+('Other', TRUE);
+
 -- USERS TABLE : Stores user accounts for commuters, officials, and admins
 CREATE TABLE users (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -25,42 +62,6 @@ CREATE TABLE users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     
     FOREIGN KEY (home_location_id) REFERENCES locations(location_id)
-);
-
--- CATEGORIES TABLE : Centralized list of incident types
-CREATE TABLE categories (
-    category_id INT AUTO_INCREMENT PRIMARY KEY,
-    category_name VARCHAR(50) NOT NULL UNIQUE, 
-    requires_description BOOLEAN DEFAULT FALSE, -- Only Other requires description
-    is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Insert incident categories
-INSERT INTO categories (category_name, requires_description) VALUES
-('Car Crash', FALSE),
-('Traffic Congestion', FALSE),
-('Flooding', FALSE),
-('Road Blockage', FALSE),
-('Construction', FALSE),
-('Stalled Vehicle', FALSE),
-('Debris', FALSE),
-('Traffic Light', FALSE),
-('Public Transport', FALSE),
-('Other', TRUE);
-
--- LOCATIONS TABLE : Centralized locations (city + barangay combinations)
--- This is fixed by 'locations.sql'
-CREATE TABLE locations (
-    location_id INT AUTO_INCREMENT PRIMARY KEY,
-    city VARCHAR(50) NOT NULL,
-    barangay VARCHAR(100) NOT NULL,
-    landmark VARCHAR(100), -- optional / if applicable
-    is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
-    -- Prevent duplicate city-barangay pairs
-    UNIQUE KEY unique_location (city, barangay)
 );
 
 -- THREADS TABLE : Groups related reports about the same incident at the same location
@@ -191,7 +192,7 @@ CREATE TABLE notifications (
     FOREIGN KEY (thread_id) REFERENCES threads(thread_id) ON DELETE CASCADE
 );
 
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 DELIMITER $$
 
 CREATE TRIGGER notify_users_same_location 
@@ -204,7 +205,7 @@ BEGIN
 END$$
 
 DELIMITER ;
---------------------------------------------------------------------------------
+-- ------------------------------------------------------------------------------
 
 
 -- AUDIT_LOG TABLE : Track admin/official actions for security and compliance
@@ -241,7 +242,7 @@ CREATE TABLE audit_logs (
     'Delete Comment',
     'Suspend User',
     'Ban User',
-    'Restore User')
+    'Restore User'),
     
     -- Which entity was affected? (report_id, thread_id, etc.)
     entity_type VARCHAR(50),
@@ -253,5 +254,5 @@ CREATE TABLE audit_logs (
     ip_address VARCHAR(45),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE RESTRICT,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE RESTRICT
 );
