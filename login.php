@@ -4,18 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LissentialManila - Login</title>
-    <link rel="stylesheet" href="style/login.css">
+    <link rel="stylesheet" href="style/auth.css">
+
+    <script src="auth.js" defer></script>
 </head>
 <body>
-
 <div class="landing-container">
     <header class="landing-header">
-        <h1>LissentialManila</h1>
+        <img src="assets\LOGO\logo_flat.png" alt="">
     </header>
 
     <main class="auth-box">
         <div class="auth-header">
-            <h2>Login</h2>
+            <h2>Log in</h2>
         </div>
 
         <form action="login_process.php" method="POST">
@@ -24,7 +25,8 @@
             </div>
 
             <div class="form-group">
-                <input type="password" id="login-password" name="password" placeholder="Password" required autocomplete="current-password">
+                 <input type="password" id="password" name="password" placeholder="Password" required autocomplete="current-password">
+                <i class="fa-solid fa-eye-slash toggle-password" data-target="password"></i>
             </div>
 
             <div class="form-options">
@@ -35,7 +37,7 @@
         </form>
 
         <div class="signup-redirect">
-            <p>Not a Member ? <a href="register.php" class="signup-link">Signup</a></p>
+            <p>Don't have an account? <a href="register.php" class="signup-link">Sign up</a></p>
         </div>
     </main>
 </div>
