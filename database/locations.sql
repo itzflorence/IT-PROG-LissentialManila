@@ -7,6 +7,7 @@ INSERT INTO locations (city, district) VALUES
 ('Manila', 'Pandacan'),
 ('Manila', 'Paco'),
 ('Manila', 'Malate'),
+('Manila', 'Taft Avenue'),
 ('Manila', 'Binondo'),
 ('Manila', 'Quiapo'),
 ('Manila', 'San Nicolas'),
@@ -15,6 +16,18 @@ INSERT INTO locations (city, district) VALUES
 ('Manila', 'San Miguel'),
 ('Manila', 'Santa Mesa'),
 ('Manila', 'Intramuros');
+-- Major University Belt & Transit Corridors
+('Manila', 'Taft Avenue'),
+('Manila', 'España Boulevard'),
+('Manila', 'C.M. Recto Avenue'),
+('Manila', 'Morayta (Nicanor Reyes)'),
+('Manila', 'Mendiola'),
+('Manila', 'Legarda Street'),
+('Manila', 'Vito Cruz'),
+('Manila', 'Padre Faura'),
+('Manila', 'Lawton'),
+('Manila', 'Divisoria'),
+('Manila', 'Blumentritt');
 
 -- Pasay (commercial hubs neighborhoods: business bays, terminal towns, heritage rows)
 INSERT INTO locations (city, district) VALUES
@@ -46,40 +59,70 @@ INSERT INTO locations (city, district) VALUES
 
 -- Quezon City (districts barangays: giant residential tracts, government centers, culinary rows)
 INSERT INTO locations (city, district) VALUES
-('Quezon City', 'Commonwealth'),
-('Quezon City', 'Batasan Hills'),
-('Quezon City', 'Payatas'),
-('Quezon City', 'Matandang Balara'),
-('Quezon City', 'Tandangsora'),
+-- Major Commercial & Transit Hubs
 ('Quezon City', 'Cubao'),
-('Quezon City', 'Diliman'),
+('Quezon City', 'Eastwood City'),
+('Quezon City', 'North EDSA (North Triangle)'),
+('Quezon City', 'E. Rodriguez Sr. Avenue'),
 ('Quezon City', 'Fairview'),
+('Quezon City', 'Novaliches'),
+
+-- Institutional, Government & University Belt
+('Quezon City', 'Diliman'),
 ('Quezon City', 'Katipunan'),
-('Quezon City', 'Kamuning'),
-('Quezon City', 'Culiat'),
-('Quezon City', 'Project 8'),
-('Quezon City', 'Novaliches Proper'),
 ('Quezon City', 'UP Campus'),
-('Quezon City', 'Loyola Heights'),
-('Quezon City', 'Timog'),
+('Quezon City', 'QC Circle (Central)'),
+('Quezon City', 'Batasan Hills'),
+('Quezon City', 'Commonwealth'),
+
+-- Culinary Rows & Entertainment Districts
+('Quezon City', 'Tomas Morato'),
+('Quezon City', 'Timog Avenue'),
 ('Quezon City', 'Banawe'),
-('Quezon City', 'New Manila');
+('Quezon City', 'Maginhawa'),
+('Quezon City', 'West Avenue'),
+('Quezon City', 'Congressional Avenue'),
+
+-- Residential Estates & Project Districts
+('Quezon City', 'New Manila'),
+('Quezon City', 'Loyola Heights'),
+('Quezon City', 'Tandang Sora'),
+('Quezon City', 'Project 2 & 3'),
+('Quezon City', 'Project 4'),
+('Quezon City', 'Project 6'),
+('Quezon City', 'Project 7 & 8'),
+('Quezon City', 'La Loma');
 
 -- Taguig (barangays commercial centers: business districts, residential sprawls, military complexes)
 INSERT INTO locations (city, district) VALUES
+-- Flagship Commercial Townships & Business Districts
+('Taguig', 'Bonifacio Global City (BGC)'),
+('Taguig', 'McKinley Hill'),
+('Taguig', 'McKinley West'),
+('Taguig', 'Uptown Bonifacio'),
+('Taguig', 'High Street / Serendra Zone'),
+('Taguig', 'Burgos Circle'),
+('Taguig', 'ARCA South'),
+
+-- Key Official Barangays & Hubs
+('Taguig', 'Fort Bonifacio'),
+('Taguig', 'Pinagsama'),
 ('Taguig', 'Western Bicutan'),
 ('Taguig', 'Lower Bicutan'),
-('Taguig', 'Pinagsama'),
-('Taguig', 'New Lower Bicutan'),
-('Taguig', 'Ususan'),
-('Taguig', 'Rizal'),
 ('Taguig', 'Upper Bicutan'),
-('Taguig', 'Fort Bonifacio'),
+('Taguig', 'Central Bicutan'),
+('Taguig', 'Ususan'),
 ('Taguig', 'Central Signal Village'),
 ('Taguig', 'Bagumbayan'),
-('Taguig', 'Pembo'),
-('Taguig', 'Central Bicutan'),
-('Taguig', 'South Signal Village');
+('Taguig', 'Taguig Poblacion'),
+
+-- Integrated EMBO Districts
+('Taguig', 'EMBO - Pembo'),
+('Taguig', 'EMBO - Comembo'),
+('Taguig', 'EMBO - Cembo'),
+('Taguig', 'EMBO - Rembo (East & West)'),
+('Taguig', 'EMBO - Rizal'),
+('Taguig', 'Post Proper Southside (New Senate Site)');
 
 -- Valenzuela (barangays: sprawling factories, industrial estates, urban residential communities)
 INSERT INTO locations (city, district) VALUES

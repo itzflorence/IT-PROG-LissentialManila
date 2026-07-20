@@ -1,4 +1,12 @@
 @import url(global.css);
+@import url(navbar.css);
+
+.post-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    cursor: pointer;
+}
 
 .post {
     width: 100%;
@@ -6,7 +14,7 @@
     flex-direction: column;
     gap: 8px;
     padding: var(--space-medium);
-    border-radius: 8px;
+    border-radius: 16px;
     transition: 0.1s ease-out;
 }
 
@@ -50,16 +58,15 @@
 }
 
 .post-details-box {
-    flex: 2;
+    flex: 1;
     background-color: var(--color3);
     border-radius: 8px;
     padding: 5px;
     color: var(--color4);
     font-weight: 600;
+    font-size: var(--font-medium);
     box-shadow: rgba(17, 17, 26, 0.1) 0px 1px 0px;
 }
-
-.post-details-box-category { flex: 1; }
 
 .post-details-box span {
     font-weight: 100;
@@ -71,21 +78,106 @@
     text-align-last: left;
     color: var(--color4);
 }
+/* ******************************************************** */
+/* post title and description */
+/* ******************************************************** */
+.post-title {
+    font-size: var(--font-large);
+}
 
-.post-image {
+.post-description {
+    font-size: var(--font-medium);
+}
+
+
+/* ******************************************************** */
+/* MEDIA ATTACHMENT (CAROUSEL */
+/* ******************************************************** */
+
+/* Outer wrapper holds your original border-radius, shadow, and layouts buttons */
+.post-media-carousel {
+    position: relative;
     width: 100%;
     border-radius: 8px;
     overflow: hidden;
     box-shadow: rgba(17, 17, 26, 0.05) 0px 1px 0px, rgba(17, 17, 26, 0.1) 0px 0px 8px;
 }
 
-.post-image img {
+/* Scroll Container handles horizontal snapping and layout */
+.carousel-container {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    width: 100%;
+    height: auto; 
+    margin: 0;
+    padding: 0;
+    -ms-overflow-style: none;  
+    scrollbar-width: none;     
+}
+
+.carousel-container::-webkit-scrollbar {
+    display: none;
+}
+
+/* Each slide fills exactly 100% width of the frame */
+.carousel-slide {
+    flex: 0 0 100%;
+    width: 100%;
+    scroll-snap-align: start;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Forces images, GIFs, and videos to adhere to your strict framing */
+.carousel-slide img,
+.carousel-slide video {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
 }
 
+/* Clean, centered Font Awesome layout button rules */
+.carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    width: 40px; /* Clear sizing to center icons */
+    height: 40px;
+    cursor: pointer;
+    font-size: 16px; /* Scales the icon scale cleanly */
+    border-radius: 50%;
+    display: flex; /* Centers the <i> tag layout */
+    justify-content: center;
+    align-items: center;
+    transition: 0.2s ease;
+    z-index: 10;
+}
+
+.carousel-btn:hover {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+.carousel-btn:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+.carousel-btn.prev { left: 12px; }
+.carousel-btn.next { right: 12px; }
+
+/* HIDE ARROWS WHEN THERE IS ONLY ONE MEDIA */
+.carousel-hidden {
+    display: none !important;
+}
+
+
+/* post buttons */
 .post-buttons {
     display: flex;
     flex-direction: row;

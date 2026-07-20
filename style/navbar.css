@@ -13,6 +13,7 @@
 
     background-color: var(--color2);
     border-bottom: 1px solid var(--color3);
+    
     z-index: 20;
 
     padding: 0 var(--space-small);
@@ -24,6 +25,11 @@
     justify-content: center;
     width: auto;  
 
+    & a {
+        display: flex;
+        align-items: center;
+    }
+    
     & img {
         height: 50px;
         width: auto;
@@ -89,13 +95,14 @@
 .sidebar {
     position: fixed;
     left: 0;
-    top: 60px;
-    height: 100%;
+    top: 64px; 
+    height: calc(100vh - 64px);
     width: 250px;
     padding: var(--space-small);
 
     display: flex;
     flex-direction: column;
+    overflow-y: auto;
 
     background-color: var(--color2);
     border-right: 1px solid var(--color3);
@@ -154,4 +161,13 @@
 .sidebar-options a:hover {
     background-color: var(--color3);
     border-radius: 8px;
+}
+
+/* COPYRIGHT NOTICE FOOTER */
+.copyright-footer {
+    position: fixed;
+    padding: var(--space-xsmall);
+    bottom: var(--space-small); 
+    left: var(--space-small);
+    font-size: .75rem;
 }

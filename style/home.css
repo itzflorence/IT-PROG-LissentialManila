@@ -1,25 +1,22 @@
-@import url(global.css);
-@import url(navbar.css);
-
 .threads-wrapper {
     position: fixed;
     right: 0;
     top: 60px;
-    width: 330px;
+    width: 400px;
     height: 100%;
     background-color: var(--color3);
-    border-radius: 15px;
-
+    border-radius: 16px;
     margin: var(--space-medium);
+    
+    /* Hide on smaller screens */
+    display: block;
 }
 
 .main-wrapper {
-    margin-top: 60px; /* Pushes content down past the navbar height */
-    margin-left: 250px; /* Pushes content right past the sidebar width */
-    margin-right: 330px; /* Pushes content right past the threads width */
-
-    min-height: calc(100vh - 60px); /* Ensures main takes up the rest of the screen */
-
+    margin-top: 64px;
+    margin-left: 250px;
+    margin-right: 400px;
+    min-height: calc(100vh - 60px);
     display: flex;
     justify-content: center;
 }
@@ -27,8 +24,9 @@
 main {
     display: flex;
     flex-direction: column;
-    width: 80%;
+    width: 75%;
     background-color: var(--color2);
+    border: 1px solid var(--color3);
     justify-content: center;
     align-items: center;
     padding: var(--space-small);
@@ -39,5 +37,36 @@ hr {
     width: 100%;
     border: none;
     background-color: var(--color3);
-    margin: var(--space-medium);
+    margin: var(--space-xsmall);
+}
+
+/* Tablet: Hide threads panel */
+@media (max-width: 1200px) {
+    .threads-wrapper {
+        display: none;
+    }
+
+    .main-wrapper {
+        margin-right: 0;
+    }
+}
+
+/* Mobile: Hide sidebar and threads */
+@media (max-width: 768px) {
+    .main-wrapper {
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    main {
+        width: 95%;
+    }
+}
+
+/* Small mobile */
+@media (max-width: 480px) {
+    main {
+        width: 100%;
+        padding: var(--space-xsmall);
+    }
 }

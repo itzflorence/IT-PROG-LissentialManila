@@ -26,7 +26,7 @@ CREATE TABLE categories (
 
 -- Insert incident categories
 INSERT INTO categories (category_name, requires_description) VALUES
-('Car Crash', FALSE),
+('Vehicle Accident', FALSE),
 ('Traffic Congestion', FALSE),
 ('Flooding', FALSE),
 ('Road Blockage', FALSE),
