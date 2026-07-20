@@ -69,6 +69,12 @@ CREATE TABLE users (
     -- For all users: home location (where they get notifications from)
     home_location_id INT NOT NULL,
     
+    -- Phone re-verification: required whenever phone_number is changed
+    pending_phone_number VARCHAR(20), -- new number awaiting verification
+    is_phone_verified BOOLEAN DEFAULT TRUE, -- FALSE while pending_phone_number is unverified
+    phone_verification_code VARCHAR(10),
+    phone_verification_expires_at TIMESTAMP NULL,
+    
     is_deleted BOOLEAN DEFAULT FALSE,
     
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -186,6 +192,9 @@ CREATE TABLE notifications (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     read_at TIMESTAMP NULL,
     
+    -- Prevent duplicate notifications for the same user/thread
+    UNIQUE KEY unique_notification (user_id, thread_id),
+    
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (thread_id) REFERENCES threads(thread_id) ON DELETE CASCADE
 );
@@ -193,18 +202,41 @@ CREATE TABLE notifications (
 -- -----------------------------------------------------------------------------
 DELIMITER $$
 
+-- Notifies users whose HOME location or any SAVED location matches the new thread's location
 CREATE TRIGGER notify_users_same_location 
 AFTER INSERT ON threads
 FOR EACH ROW
 BEGIN
-    INSERT INTO notifications (user_id, thread_id)
+    INSERT IGNORE INTO notifications (user_id, thread_id)
     SELECT user_id FROM users
     WHERE home_location_id = NEW.location_id AND is_deleted = FALSE;
+
+    INSERT IGNORE INTO notifications (user_id, thread_id)
+    SELECT user_id FROM saved_locations
+    WHERE location_id = NEW.location_id;
 END$$
 
 DELIMITER ;
 -- ------------------------------------------------------------------------------
 
+
+-- ADVISORIES TABLE : Official traffic advisories posted by LGU/MMDA officials
+CREATE TABLE advisories (
+    advisory_id INT AUTO_INCREMENT PRIMARY KEY,
+    posted_by INT NOT NULL, -- must be Official or Admin
+    location_id INT, -- optional: advisory can be city-wide (NULL) or location-specific
+
+    title VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,
+
+    is_active BOOLEAN DEFAULT TRUE, -- soft delete / unpublish
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (posted_by) REFERENCES users(user_id) ON DELETE RESTRICT,
+    FOREIGN KEY (location_id) REFERENCES locations(location_id)
+);
 
 -- AUDIT_LOG TABLE : Track admin/official actions for security and compliance
 CREATE TABLE audit_logs (
@@ -226,6 +258,7 @@ CREATE TABLE audit_logs (
     'Create Thread',
     'Update Thread',
     'Archive Thread',
+    'Merge Thread',
     'Add Post to Thread',
     
     -- User Management
@@ -234,6 +267,11 @@ CREATE TABLE audit_logs (
     'Delete User',
     'Change User Role',
     'Assign Area', -- for admin
+    
+    -- Advisory Actions
+    'Post Advisory',
+    'Edit Advisory',
+    'Delete Advisory',
     
     -- Moderation
     'Flag Report',
