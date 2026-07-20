@@ -14,6 +14,20 @@ CREATE TABLE locations (
     UNIQUE KEY unique_location (city, district)
 );
 
+-- SAVED_LOCATIONS TABLE : Users can save additional locations for notifications
+CREATE TABLE saved_locations (
+    saved_location_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    location_id INT NOT NULL,
+    
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Prevent duplicate saves: one user can only save a location once
+    UNIQUE KEY unique_saved_location (user_id, location_id),
+    
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (location_id) REFERENCES locations(location_id) ON DELETE CASCADE
+);
 
 -- CATEGORIES TABLE : Centralized list of incident types
 CREATE TABLE categories (

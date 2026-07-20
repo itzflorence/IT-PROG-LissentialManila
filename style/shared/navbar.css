@@ -28,6 +28,11 @@
     & a {
         display: flex;
         align-items: center;
+        transition: 0.3s ease-out;
+    }
+
+    & a:hover {
+        transform: scale(1.05);
     }
     
     & img {
@@ -113,14 +118,27 @@
 .create-report {
     margin: var(--space-small) 0;
 }
+
 .create-report button {
     width: 100%;
     padding: var(--space-medium);
     font-weight: 600;
-    font-size: calc(var(--font-medium) + 3px);
+    font-size: var(--font-medium);
     border-radius: 8px;
-
     box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+    
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+.create-report button:hover {
+    transform: scale(1.03); 
+    box-shadow: rgba(149, 157, 165, 0.4) 0px 12px 32px; 
+}
+
+.create-report button:active {
+    transform: scale(0.98); 
+    box-shadow: rgba(149, 157, 165, 0.2) 0px 4px 12px;
 }
 
 .sidebar-options-wrapper {
@@ -151,7 +169,7 @@
 
 .sidebar-options a {
     outline: none;
-    padding: var(--space-xsmall);
+    padding: calc(var(--space-xsmall) - 2px);
     text-decoration: none;
     color: var(--colorText);
     font-size: var(--font-medium);
@@ -159,15 +177,14 @@
 }
 
 .sidebar-options a:hover {
+    transform: scale(1.02);
     background-color: var(--color3);
     border-radius: 8px;
 }
 
 /* COPYRIGHT NOTICE FOOTER */
 .copyright-footer {
-    position: fixed;
     padding: var(--space-xsmall);
-    bottom: var(--space-small); 
-    left: var(--space-small);
-    font-size: .75rem;
+    margin-top: var(--space-large);
+    font-size: .7rem;
 }

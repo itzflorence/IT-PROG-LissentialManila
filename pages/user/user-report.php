@@ -5,14 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-    <link rel="stylesheet" href="style/home.css">
+    <link rel="stylesheet" href="../../style/user/home.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
         integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="style/post.css">
+    <link rel="stylesh../../style/shared/post.cssle/post.css">
 
-    <!-- IMAGE CAROUSEL -->
-    <script src="media-carousel.js" defer></script>
+    <!-- IMAGE CAROUS../shared-js/media-carousel.jst src="media-carousel.js" defer></script>
 </head>
 
 <body>
@@ -20,8 +19,7 @@
     <nav>
         <header class="navbar">
             <div class="navbar-logo">
-                <a href="home.php">
-                    <img src="assets\LOGO\logo_normal.png" alt="LissentialManila Logo">
+                <a href="home../../assets/LOGO/logo_normal.png<img src="assets\LOGO\logo_normal.png" alt="LissentialManila Logo">
                 </a>
             </div>
 
@@ -90,7 +88,7 @@
         <main>
             <section class="post">
                 <div class="profile-details">
-                    <div class="post-pfp"><img src="assets/user_images/user1.jpg" alt=""></div>
+         ../../assets/user_images/user1.jpgpfp"><img src="assets/user_images/user1.jpg" alt=""></div>
                     <span class="username">GreenArcher_01</span>
                     <span>•</span>
                     <span class="hours-ago">Just now</span>
@@ -131,8 +129,7 @@
                     <div class="carousel-container">
 
                         <!-- slide 1: Image -->
-                        <div class="carousel-slide">
-                            <img src="assets/report_media/media1-1.jfif" alt="">
+                        <div class="carous../../assets/report_media/media1-1.jfif      <img src="assets/report_media/media1-1.jfif" alt="">
                         </div>
                     </div>
                 </div>

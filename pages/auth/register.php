@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LissentialManila - Sign up</title>
-    <link rel="stylesheet" href="../style/auth.css">
+    <link rel="stylesheet" href="../../style/shared/auth.css">
 
     <!-- AUTH JS -->
     <script src="auth.js" defer></script>
@@ -14,7 +14,7 @@
 <body>
     <div class="landing-container">
         <header class="landing-header">
-            <img src="assets\LOGO\logo_flat.png" alt="">
+            ../../assets/LOGO/logo_flat.pngo_flat.png" alt="">
         </header>
 
         <main class="auth-box">
