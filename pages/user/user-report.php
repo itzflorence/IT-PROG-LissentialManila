@@ -4,22 +4,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>My Reports</title>
     <link rel="stylesheet" href="../../style/user/home.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
         integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesh../../style/shared/post.cssle/post.css">
+    <link rel="stylesheet" href="../../style/shared/post.css">
 
-    <!-- IMAGE CAROUS../shared-js/media-carousel.jst src="media-carousel.js" defer></script>
+    <script src="../shared-js/media-carousel.js" defer></script>
 </head>
 
 <body>
-    <!----------------------------------- NAVIGATION BAR (AND SIDE BAR) ----------------------------------->
     <nav>
         <header class="navbar">
             <div class="navbar-logo">
-                <a href="home../../assets/LOGO/logo_normal.png<img src="assets\LOGO\logo_normal.png" alt="LissentialManila Logo">
+                <a href="user-home.php">
+                    <img src="../../assets/LOGO/logo_normal.png" alt="LissentialManila Logo">
                 </a>
             </div>
 
@@ -53,7 +53,6 @@
                 <hr>
             </div>
 
-
             <div class="sidebar-options-wrapper">
                 <span class="sidebar-title">THREADS</span>
                 <div class="sidebar-options">
@@ -83,38 +82,33 @@
         </aside>
     </nav>
 
-    <!--====== POST 1 ======-->
     <div class="main-wrapper">
         <main>
             <section class="post">
                 <div class="profile-details">
-         ../../assets/user_images/user1.jpgpfp"><img src="assets/user_images/user1.jpg" alt=""></div>
+                    <div class="post-pfp"><img src="../../assets/user_images/user1.jpg" alt=""></div>
                     <span class="username">GreenArcher_01</span>
                     <span>•</span>
                     <span class="hours-ago">Just now</span>
                 </div>
 
                 <div class="post-details">
-                    <!-- location -->
                     <div class="post-details-box">
                         <i class="fa-solid fa-location-dot" style="color: var(--colorRed);"></i>
                         <span>Taft Avenue, Manila</span>
                     </div>
 
-                    <!-- category -->
                     <div class="post-details-box post-details-box-category">
                         <i class="fa-solid fa-layer-group" style="color: var(--colorYellow);"></i>
                         <span>Flooding</span>
                     </div>
 
-                    <!-- date and time -->
                     <div class="post-details-box">
                         <i class="fa-solid fa-clock" style="color: var(--colorGreen);"></i>
                         <span>July 21, 2026</span> | <span>02:14 PM</span>
                     </div>
                 </div>
 
-                <!---------- title and description---------->
                 <div class="post-title-and-description">
                     <h2><span class="post-title">Gutter-deep flooding outside DLSU after sudden downpour</span></h2>
                     <span class="post-description">Heavy torrential rain over the last 30 minutes has caused localized
@@ -123,13 +117,10 @@
                         very slowly.</span>
                 </div>
 
-                <!---------- MEDIA ATTACHMENTS ---------->
                 <div class="post-media-carousel">
-                    <!-- scroll container -->
                     <div class="carousel-container">
-
-                        <!-- slide 1: Image -->
-                        <div class="carous../../assets/report_media/media1-1.jfif      <img src="assets/report_media/media1-1.jfif" alt="">
+                        <div class="carousel-slide">
+                            <img src="../../assets/report_media/media1-1.jfif" alt="">
                         </div>
                     </div>
                 </div>
@@ -158,13 +149,9 @@
                             <i class="fa-solid fa-user-check"></i>
                             Verified by Officials
                         </button>
-                        <button class="status">
-                            Status: RESOLVED</button>
+                        <button class="status">Status: RESOLVED</button>
                     </div>
                 </div>
-
-                <!-- ADD COMMENT HERE -->
-                <!-- COMMENTS (automatically sorted by most recent) -->
             </section>
             <hr>
         </main>

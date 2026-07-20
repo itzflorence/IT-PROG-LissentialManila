@@ -9,9 +9,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
         integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesh../../style/shared/post.cssle/post.css">
+    <link rel="stylesheet" href="../../style/shared/post.css">
 
-    <!-- IMAGE CAROUS../shared-js/media-carousel.jst src="media-carousel.js" defer></script>
+    <!-- IMAGE CAROUSEL -->
+    <script src="../shared-js/media-carousel.js" defer></script>
 </head>
 
 <body>
@@ -19,7 +20,8 @@
     <nav>
         <header class="navbar">
             <div class="navbar-logo">
-                <a href="home../../assets/LOGO/logo_normal.png<img src="assets\LOGO\logo_normal.png" alt="LissentialManila Logo">
+                <a href="user-home.php">
+                    <img src="../../assets/LOGO/logo_normal.png" alt="LissentialManila Logo">
                 </a>
             </div>
 
@@ -47,7 +49,7 @@
             <div class="sidebar-options-wrapper">
                 <span class="sidebar-title">FEED</span>
                 <div class="sidebar-options">
-                    <a href="home.php">All Reports</a>
+                    <a href="user-home.php">All Reports</a>
                     <a href="#">Reports Near Me</a>
                     <a href="#">Official Advisories</a>
                 </div>
@@ -105,10 +107,11 @@
     <!--====== POSTS ======-->
     <div class="main-wrapper">
         <main>
-            <!--============================== POST 1 ============user-report.php         <a href="user-user-user-report.php" class="post-link">
+            <!--============================== POST 1 ==============================-->
+            <a href="user-report.php" class="post-link">
                 <section class="post">
                     <div class="profile-details">
-                       ../../assets/user_images/user1.jpgsrc="assets/user_images/user1.jpg" alt=""></div>
+                        <div class="post-pfp"><img src="../../assets/user_images/user1.jpg" alt=""></div>
                         <span class="username">GreenArcher_01</span>
                         <span>•</span>
                         <span class="hours-ago">Just now</span>
@@ -152,7 +155,7 @@
 
                             <!-- slide 1: Image -->
                             <div class="carousel-slide">
-   ../../assets/report_media/media1-1.jfif src="assets/report_media/media1-1.jfif" alt="">
+                                <img src="../../assets/report_media/media1-1.jfif" alt="">
                             </div>
                         </div>
                     </div>
@@ -189,10 +192,11 @@
             </a>
             <hr>
 
-            <!--============================== POST 2 ==========user-report.php      <a href="user-user-user-report.php?id=2" class="post-link">
+            <!--============================== POST 2 ==============================-->
+            <a href="user-report.php?id=2" class="post-link">
                 <section class="post">
                     <div class="profile-details">
-                        <d../../assets/user_images/user2.jpg="assets/user_images/user2.jpg" alt=""></div>
+                        <div class="post-pfp"><img src="../../assets/user_images/user2.jpg" alt=""></div>
                         <span class="username">MichaelJackson</span> <!-- BACKEND PHP LOGIC HERE -->
                         <span>•</span>
                         <span class="hours-ago">36 mins ago</span>
@@ -236,20 +240,22 @@
 
                             <!-- slide 1: Image -->
                             <div class="carousel-slide">
-      ../../assets/report_media/media2-1.jpgrc="assets/report_media/media2-1.jpg" alt="">
+                                <img src="../../assets/report_media/media2-1.jpg" alt="">
                             </div>
 
                             <!-- slide 2: GIF (Handled identically to images) -->
                             <div class="carousel-slide">
-../../assets/report_media/media2-2.jfifimg src="assets/report_media/media2-2.jfif" alt="">
+                                <img src="../../assets/report_media/media2-2.jfif" alt="">
                             </div>
 
                             <!-- slide 3: Video Media -->
-                            <div class="carousel-sl../../assets/report_media/media2-3.jpg      <img src="assets/report_media/media2-3.jpg" alt="">
+                            <div class="carousel-slide">
+                                <img src="../../assets/report_media/media2-3.jpg" alt="">
                             </div>
 
                             <!-- slide 4: Video -->
-                            <div class="carouse../../assets/report_media/media2-4.mp4          <video src="assets/report_media/media2-4.mp4" controls muted playsinline></video>
+                            <div class="carousel-slide">
+                                <video src="../../assets/report_media/media2-4.mp4" controls muted playsinline></video>
                             </div>
 
                         </div>
@@ -260,9 +266,9 @@
                         </button>
                         <button class="carousel-btn next" aria-label="Next slide" onclick="moveCarousel(this, 1)">
                             <i class="fa-solid fa-chevron-right"></i>
-            ../shared-js/media-carousel.jston>
+                        </button>
 
-                        <script src="media-carousel.js" defer></script>
+                        <script src="../shared-js/media-carousel.js" defer></script>
                     </div>
 
                     <!---------- post buttons ---------->
@@ -299,10 +305,11 @@
 
             <hr>
 
-            <!--====================user-report.php==================-->
-            <a href="user-user-user-report.php?id=3" class="post-link">
+            <!--============================== POST 3 ==============================-->
+            <a href="user-report.php?id=3" class="post-link">
                 <section class="post">
-                    <div class="profile-details"../../assets/user_images/user3.jpgiv class="post-pfp"><img src="assets/user_images/user3.jpg" alt=""></div>
+                    <div class="profile-details">
+                        <div class="post-pfp"><img src="../../assets/user_images/user3.jpg" alt=""></div>
                         <span class="username">ManilaCommuter</span>
                         <span>•</span>
                         <span class="hours-ago">2 hours ago</span>
@@ -345,7 +352,8 @@
                     <div class="post-media-carousel">
 
                         <div class="carousel-container">
-                            <div cl../../assets/report_media/media3-1.jfif                     <img src="assets/report_media/media3-1.jfif" alt="">
+                            <div class="carousel-slide">
+                                <img src="../../assets/report_media/media3-1.jfif" alt="">
                             </div>
                         </div>
 
@@ -398,11 +406,11 @@
 
             <hr>
 
-            <!--=======================user-report.php===============-->
-            <a href="user-user-user-report.php?id=4" class="post-link">
+            <!--============================== POST 4 ==============================-->
+            <a href="user-report.php?id=4" class="post-link">
                 <section class="post">
                     <div class="profile-details">
- ../../assets/user_images/user4.jpgclass="post-pfp"><img src="assets/user_images/user4.jpg" alt=""></div>
+                        <div class="post-pfp"><img src="../../assets/user_images/user4.jpg" alt=""></div>
                         <span class="username">NightOwl_Driver</span>
                         <span>•</span>
                         <span class="hours-ago">Yesterday</span>
@@ -446,7 +454,8 @@
 
                         <div class="carousel-container">
 
-                            <div class../../assets/report_media/media4-1.png                   <img src="assets/report_media/media4-1.png" alt="">
+                            <div class="carousel-slide">
+                                <img src="../../assets/report_media/media4-1.png" alt="">
                             </div>
                         </div>
 

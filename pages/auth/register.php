@@ -14,7 +14,7 @@
 <body>
     <div class="landing-container">
         <header class="landing-header">
-            ../../assets/LOGO/logo_flat.pngo_flat.png" alt="">
+            <img src="../../assets/LOGO/logo_flat.png" alt="">
         </header>
 
         <main class="auth-box">
