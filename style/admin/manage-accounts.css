@@ -1,0 +1,475 @@
+@import url(../shared/global.css);
+@import url(../shared/navbar.css);
+
+/* PAGE HEADER + TOOLBAR  */
+.accounts-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-medium);
+    padding: var(--space-medium);
+    width: 100%;
+}
+
+.accounts-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: var(--space-medium);
+    padding-bottom: var(--space-small);
+    border-bottom: 1px solid var(--color3);
+}
+
+.accounts-header h1 {
+    font-size: var(--font-xlarge);
+    font-weight: 700;
+    color: var(--colorText);
+}
+
+.accounts-header p {
+    font-size: var(--font-small);
+    color: var(--color4);
+    margin-top: 4px;
+}
+
+.btn-add-account {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: var(--color5);
+    color: var(--color1);
+    border: none;
+    padding: 12px 24px;
+    font-size: var(--font-medium);
+    font-weight: 700;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: rgba(0, 0, 0, 0.15) 0px 4px 12px;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.btn-add-account:hover {
+    transform: scale(1.03);
+    background-color: #000000;
+}
+
+.btn-add-account:active {
+    transform: scale(0.98);
+}
+
+/* TOOLBAR: search + role filter */
+.accounts-toolbar {
+    display: flex;
+    flex-direction: row;
+    gap: var(--space-medium);
+    flex-wrap: wrap;
+}
+
+.accounts-search {
+    flex: 3;
+    min-width: 220px;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.accounts-search input {
+    width: 100%;
+    padding: var(--space-small);
+    padding-right: 40px;
+    border: 1px solid var(--color3);
+    border-radius: 8px;
+    background-color: var(--color1);
+    color: var(--color5);
+    font-size: var(--font-small);
+}
+
+.accounts-search input:focus {
+    outline: none;
+    border-color: var(--color5);
+}
+
+.accounts-search i {
+    position: absolute;
+    right: 12px;
+    color: var(--color4);
+    pointer-events: none;
+}
+
+.accounts-filter select {
+    flex: 1;
+    min-width: 160px;
+    padding: var(--space-small);
+    border: 1px solid var(--color3);
+    border-radius: 8px;
+    background-color: var(--color1);
+    color: var(--color5);
+    font-size: var(--font-small);
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.accounts-filter select:focus {
+    outline: none;
+    border-color: var(--color5);
+}
+
+/* TABLE */                                                       
+.accounts-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid var(--color3);
+    border-radius: 12px;
+}
+
+.accounts-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-small);
+    min-width: 900px;
+}
+
+.accounts-table thead {
+    background-color: var(--color2);
+}
+
+.accounts-table th {
+    text-align: left;
+    padding: var(--space-small) var(--space-medium);
+    color: var(--color4);
+    font-weight: 700;
+    font-size: var(--font-xsmall);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--color3);
+    white-space: nowrap;
+}
+
+.accounts-table td {
+    padding: var(--space-small) var(--space-medium);
+    border-bottom: 1px solid var(--color3);
+    color: var(--colorText);
+    vertical-align: middle;
+}
+
+.accounts-table tbody tr {
+    transition: background-color 0.1s ease-out;
+}
+
+.accounts-table tbody tr:hover {
+    background-color: color-mix(in srgb, var(--color3) 40%, transparent);
+}
+
+.accounts-table tbody tr.row-deleted {
+    opacity: 0.55;
+}
+
+.account-name-cell {
+    display: flex;
+    flex-direction: column;
+}
+
+.account-fullname {
+    font-weight: 600;
+}
+
+.account-username {
+    color: var(--color4);
+    font-size: var(--font-xsmall);
+}
+
+/* ROLE + STATUS BADGES */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: var(--font-xsmall);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.badge-role-student {
+    background-color: color-mix(in srgb, var(--colorBlue) 18%, white);
+    color: #2f6bc4;
+}
+
+.badge-role-official {
+    background-color: color-mix(in srgb, var(--colorGreen) 18%, white);
+    color: var(--colorGreen);
+}
+
+.badge-role-admin {
+    background-color: color-mix(in srgb, var(--colorRed) 18%, white);
+    color: var(--colorRed);
+}
+
+.badge-status-active {
+    background-color: color-mix(in srgb, var(--colorGreen) 15%, white);
+    color: var(--colorGreen);
+}
+
+.badge-status-deleted {
+    background-color: color-mix(in srgb, var(--colorRed) 15%, white);
+    color: var(--colorRed);
+}
+
+/* ACTION BUTTONS */
+.account-actions {
+    display: flex;
+    flex-direction: row;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.account-actions button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: var(--font-xsmall);
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+}
+
+.account-actions button:hover {
+    transform: scale(1.04);
+}
+
+.btn-edit-account {
+    background-color: var(--color3);
+    color: var(--colorText);
+}
+
+.btn-delete-account {
+    background-color: color-mix(in srgb, var(--colorRed) 12%, white);
+    color: var(--colorRed);
+}
+
+.btn-restore-account {
+    background-color: color-mix(in srgb, var(--colorGreen) 12%, white);
+    color: var(--colorGreen);
+}
+
+.accounts-empty-state {
+    text-align: center;
+    padding: var(--space-xlarge);
+    color: var(--color4);
+}
+
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 100;
+    justify-content: center;
+    align-items: center;
+    padding: var(--space-medium);
+}
+
+.modal-overlay.modal-open {
+    display: flex;
+}
+
+.modal-box {
+    background-color: var(--color1);
+    width: 100%;
+    max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+    border-radius: 16px;
+    padding: var(--space-large);
+    box-shadow: rgba(17, 17, 26, 0.2) 0px 16px 48px;
+}
+
+.modal-box.modal-box-small {
+    max-width: 400px;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-large);
+    padding-bottom: var(--space-small);
+    border-bottom: 1px solid var(--color3);
+}
+
+.modal-header h2 {
+    font-size: var(--font-large);
+    font-weight: 700;
+    color: var(--colorText);
+}
+
+.modal-close-btn {
+    background: transparent;
+    color: var(--color4);
+    font-size: 1.3rem;
+    padding: 4px;
+    cursor: pointer;
+}
+
+.modal-close-btn:hover {
+    color: var(--colorText);
+}
+
+.modal-form-row {
+    display: flex;
+    gap: var(--space-medium);
+    margin-bottom: var(--space-large);
+}
+
+.modal-form-row .modal-form-group {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.modal-form-group {
+    margin-bottom: var(--space-large);
+}
+
+.modal-form-group label {
+    display: block;
+    font-size: var(--font-xsmall);
+    font-weight: 700;
+    color: var(--color4);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+}
+
+.modal-form-group input,
+.modal-form-group select {
+    width: 100%;
+    padding: var(--space-xsmall) 0;
+    border: none;
+    border-bottom: 2px solid var(--color3);
+    background-color: transparent;
+    color: var(--colorText);
+    font-family: inherit;
+    font-size: 1rem;
+    transition: border-color 0.2s ease;
+}
+
+.modal-form-group input:focus,
+.modal-form-group select:focus {
+    outline: none;
+    border-bottom-color: var(--colorBlue);
+}
+
+.modal-form-group small {
+    display: block;
+    color: var(--color4);
+    font-size: var(--font-xsmall);
+    margin-top: 4px;
+}
+
+.modal-hidden-field {
+    display: none !important;
+}
+
+.status-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: var(--color2);
+    padding: var(--space-small) var(--space-medium);
+    border-radius: 8px;
+    margin-bottom: var(--space-large);
+}
+
+.status-toggle-row span {
+    font-size: var(--font-small);
+    font-weight: 600;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 42px;
+    height: 24px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.switch-slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background-color: var(--colorRed);
+    transition: 0.2s;
+    border-radius: 24px;
+}
+
+.switch-slider::before {
+    content: "";
+    position: absolute;
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.2s;
+    border-radius: 50%;
+}
+
+.switch input:checked + .switch-slider {
+    background-color: var(--colorGreen);
+}
+
+.switch input:checked + .switch-slider::before {
+    transform: translateX(18px);
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-small);
+    margin-top: var(--space-medium);
+}
+
+.modal-btn {
+    padding: 10px 24px;
+    font-size: var(--font-medium);
+    font-weight: 700;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.modal-btn:active {
+    transform: scale(0.98);
+}
+
+.modal-btn-cancel {
+    background-color: var(--color3);
+    color: var(--colorText);
+}
+
+.modal-btn-confirm {
+    background-color: var(--color5);
+    color: var(--color1);
+}
+
+.modal-btn-danger {
+    background-color: var(--colorRed);
+    color: var(--color1);
+}
+
+@media (max-width: 768px) {
+    .modal-form-row {
+        flex-direction: column;
+        gap: var(--space-large);
+    }
+}
