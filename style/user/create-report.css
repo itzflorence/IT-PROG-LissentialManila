@@ -1,0 +1,177 @@
+@import url(../shared/global.css);
+@import url(../shared/navbar.css);
+
+/* FORM CONTAINER */
+.create-report-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-medium);
+    padding: var(--space-medium);
+    width: 100%;
+}
+
+/* HEADER INPUTS (TITLE & DESCRIPTION) */
+.form-header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xsmall);
+}
+
+.input-report-title {
+    width: 100%;
+    font-size: clamp(1.5rem, 2vw, 2.2rem);
+    font-weight: 700;
+    color: var(--colorText);
+    border: none;
+    outline: none;
+    background: transparent;
+}
+
+.input-report-title::placeholder {
+    color: #111111;
+    opacity: 0.9;
+}
+
+.input-report-desc {
+    width: 100%;
+    font-size: var(--font-medium);
+    color: var(--color4);
+    border: none;
+    outline: none;
+    background: transparent;
+}
+
+.input-report-desc::placeholder {
+    color: #666666;
+}
+
+/* META PILLS ROW */
+.form-meta-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-medium);
+    flex-wrap: wrap;
+    margin-top: var(--space-xsmall);
+}
+
+.meta-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: var(--color3);
+    padding: 8px var(--space-medium);
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: #555555;
+}
+
+.meta-pill label {
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+}
+
+.meta-pill input,
+.meta-pill select {
+    border: none;
+    outline: none;
+    background: transparent;
+    font-weight: 600;
+    color: #666666;
+    font-size: 0.85rem;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.meta-pill input {
+    width: 180px;
+    cursor: text;
+}
+
+.category-icon {
+    font-size: 1rem;
+    color: #444444;
+}
+
+/* MEDIA UPLOAD AREA */
+.media-upload-area {
+    margin-top: var(--space-xsmall);
+    width: 100%;
+    height: 340px;
+    border: 2px dashed #d5d7da;
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: transparent;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.media-upload-area:hover {
+    border-color: var(--color4);
+    background-color: rgba(0, 0, 0, 0.01);
+}
+
+.media-upload-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.upload-icon-wrapper {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.upload-icon-wrapper .fa-images {
+    font-size: 80px;
+    color: #d1d5db;
+}
+
+.upload-arrow {
+    position: absolute;
+    top: -6px;
+    font-size: 26px;
+    color: #d1d5db;
+}
+
+.upload-text {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #d1d5db;
+}
+
+/* SUBMIT BUTTON */
+.form-submit-wrapper {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: var(--space-small);
+}
+
+.btn-post-report {
+    background-color: #1a1a1a;
+    color: #ffffff;
+    border: none;
+    padding: 12px 32px;
+    font-size: var(--font-medium);
+    font-weight: 700;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: rgba(0, 0, 0, 0.15) 0px 4px 12px;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.btn-post-report:hover {
+    transform: scale(1.03);
+    background-color: #000000;
+}
+
+.btn-post-report:active {
+    transform: scale(0.98);
+}
