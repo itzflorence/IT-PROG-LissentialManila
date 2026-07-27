@@ -84,10 +84,11 @@
 
             <div class="sidebar-options-wrapper">
                 <span class="sidebar-title">THREADS</span>
+
                 <div class="sidebar-options">
-                    <a href="#">Active</a>
-                    <a href="#">Resolved</a>
-                    <a href="#">Archived</a>
+                    <a href="pages/user/user-active-threads.php">Active</a>
+                    <a href="pages/user/user-resolved-threads.php">Resolved</a>
+                    <a href="pages/user/user-threads.php?status=Archived">Archived</a>
                 </div>
             </div>
 
