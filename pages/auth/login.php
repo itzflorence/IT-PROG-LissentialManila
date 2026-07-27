@@ -29,18 +29,29 @@ if (is_authenticated()) {
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = mysqli_real_escape_string($conn, trim($_POST['username']));
-    $password = $_POST['password'];
+    $identifier = trim((string) ($_POST['username'] ?? ''));
+    $password = (string) ($_POST['password'] ?? '');
 
-    $query = "SELECT user_id, username, password_hash, role
-              FROM users
-              WHERE username = '$username'
-              AND is_deleted = FALSE";
+    $stmt = mysqli_prepare(
+        $conn,
+        'SELECT user_id, username, password_hash, role
+         FROM users
+         WHERE (username = ? OR email = ?)
+         AND is_deleted = FALSE
+         LIMIT 1'
+    );
 
-    $result = mysqli_query($conn, $query);
+    if ($stmt) {
+        mysqli_stmt_bind_param($stmt, 'ss', $identifier, $identifier);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        $user = $result ? mysqli_fetch_assoc($result) : null;
+        mysqli_stmt_close($stmt);
+    } else {
+        $user = null;
+    }
 
-    if ($result && mysqli_num_rows($result) === 1) {
-        $user = mysqli_fetch_assoc($result);
+    if ($user) {
 
         if (password_verify($password, $user['password_hash'])) {
             $_SESSION['user_id'] = $user['user_id'];
@@ -98,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <form method="POST">
                 <div class="form-group">
-                    <input type="text" id="login-username" name="username" placeholder="Username" required
+                    <input type="text" id="login-username" name="username" placeholder="Username or Email" required
                         autocomplete="username">
                 </div>
 

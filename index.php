@@ -1,22 +1,191 @@
-
-
 <?php
 declare(strict_types=1);
 
 require_once __DIR__ . '/includes/auth.php';
+require_once __DIR__ . '/includes/thread-query.php';
+
+function escape_html(?string $value): string
+{
+    return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
+}
+
+function normalize_media_url(string $fileUrl): string
+{
+    $path = trim($fileUrl);
+    $normalized = preg_replace('#^(?:\.\./)+#', '', $path);
+
+    return ltrim((string) ($normalized ?? $path), '/');
+}
+
+function relative_time_label(?string $timestamp): string
+{
+    if ($timestamp === null || $timestamp === '') {
+        return 'Unknown time';
+    }
+
+    try {
+        $now = new DateTimeImmutable('now');
+        $created = new DateTimeImmutable($timestamp);
+    } catch (Throwable $error) {
+        return 'Unknown time';
+    }
+
+    $diff = $created->diff($now);
+
+    if ($diff->y > 0) {
+        return $diff->y . ' year' . ($diff->y === 1 ? '' : 's') . ' ago';
+    }
+    if ($diff->m > 0) {
+        return $diff->m . ' month' . ($diff->m === 1 ? '' : 's') . ' ago';
+    }
+    if ($diff->d > 0) {
+        return $diff->d . ' day' . ($diff->d === 1 ? '' : 's') . ' ago';
+    }
+    if ($diff->h > 0) {
+        return $diff->h . ' hour' . ($diff->h === 1 ? '' : 's') . ' ago';
+    }
+    if ($diff->i > 0) {
+        return $diff->i . ' min' . ($diff->i === 1 ? '' : 's') . ' ago';
+    }
+
+    return 'Just now';
+}
+
+/**
+ * @return array{date:string,time:string}
+ */
+function report_date_time_labels(?string $timestamp): array
+{
+    if ($timestamp === null || $timestamp === '') {
+        return ['date' => 'Unknown date', 'time' => '--:--'];
+    }
+
+    try {
+        $created = new DateTimeImmutable($timestamp);
+    } catch (Throwable $error) {
+        return ['date' => 'Unknown date', 'time' => '--:--'];
+    }
+
+    return [
+        'date' => $created->format('F d, Y'),
+        'time' => $created->format('h:i A'),
+    ];
+}
 
 $isAuthenticated = is_authenticated();
 
 $username = $_SESSION['username'] ?? null;
-$role = $_SESSION['role'] ?? null;
+$safeUsername = escape_html((string) ($username ?? ''));
 
 $loginUrl = 'pages/auth/login.php';
+$logoutUrl = 'pages/auth/logout.php';
 $registerUrl = 'pages/auth/register.php';
 $createReportUrl = $isAuthenticated ? 'pages/user/user-create-report.php' : $registerUrl;
 $myReportsUrl = $isAuthenticated ? 'pages/user/user-my-reports.php' : $loginUrl;
 $activeThreadsUrl = $isAuthenticated ? 'pages/user/user-active-threads.php' : $loginUrl;
 $resolvedThreadsUrl = $isAuthenticated ? 'pages/user/user-resolved-threads.php' : $loginUrl;
 $archivedThreadsUrl = $isAuthenticated ? 'pages/user/user-threads.php?status=Archived' : $loginUrl;
+
+$allowedStatuses = ['Pending', 'Verified', 'Resolved', 'Rejected'];
+$selectedStatus = trim((string) ($_GET['status'] ?? ''));
+if (!in_array($selectedStatus, $allowedStatuses, true)) {
+    $selectedStatus = '';
+}
+
+$selectedCategoryId = filter_input(
+    INPUT_GET,
+    'category',
+    FILTER_VALIDATE_INT,
+    ['options' => ['min_range' => 1]]
+);
+$selectedCategoryId = $selectedCategoryId === false ? null : $selectedCategoryId;
+
+$categories = [];
+$reports = [];
+$mediaByReport = [];
+$reportLoadError = null;
+
+try {
+    $db = thread_db();
+
+    $categoryResult = $db->query('SELECT category_id, category_name FROM categories WHERE is_active = TRUE ORDER BY category_name ASC');
+    while ($row = $categoryResult->fetch_assoc()) {
+        $categories[] = $row;
+    }
+
+    $sql = <<<'SQL'
+        SELECT
+            r.report_id,
+            r.thread_id,
+            r.title,
+            r.description,
+            r.status,
+            r.upvote_count,
+            r.comment_count,
+            r.verified_by,
+            r.created_at,
+            u.username,
+            u.first_name,
+            u.last_name,
+            c.category_name,
+            l.city,
+            l.district
+        FROM reports r
+        INNER JOIN users u ON u.user_id = r.user_id
+        INNER JOIN categories c ON c.category_id = r.category_id
+        INNER JOIN locations l ON l.location_id = r.location_id
+        WHERE r.is_deleted = FALSE
+    SQL;
+
+    $types = '';
+    $params = [];
+
+    if ($selectedStatus !== '') {
+        $sql .= ' AND r.status = ?';
+        $types .= 's';
+        $params[] = $selectedStatus;
+    }
+
+    if ($selectedCategoryId !== null) {
+        $sql .= ' AND r.category_id = ?';
+        $types .= 'i';
+        $params[] = $selectedCategoryId;
+    }
+
+    $sql .= ' ORDER BY r.created_at DESC, r.report_id DESC';
+
+    $statement = $db->prepare($sql);
+    if ($types !== '') {
+        $statement->bind_param($types, ...$params);
+    }
+    $statement->execute();
+
+    $reports = $statement->get_result()->fetch_all(MYSQLI_ASSOC);
+
+    if ($reports !== []) {
+        $reportIds = array_map(
+            static fn(array $report): int => (int) $report['report_id'],
+            $reports
+        );
+
+        $placeholders = implode(',', array_fill(0, count($reportIds), '?'));
+        $mediaSql = "SELECT report_id, file_url, file_type FROM media_attachments WHERE report_id IN ($placeholders) ORDER BY report_id ASC, media_id ASC";
+        $mediaStatement = $db->prepare($mediaSql);
+        $mediaStatement->bind_param(str_repeat('i', count($reportIds)), ...$reportIds);
+        $mediaStatement->execute();
+
+        $mediaResult = $mediaStatement->get_result();
+        while ($mediaRow = $mediaResult->fetch_assoc()) {
+            $reportId = (int) $mediaRow['report_id'];
+            $mediaByReport[$reportId][] = [
+                'file_url' => (string) ($mediaRow['file_url'] ?? ''),
+                'file_type' => strtolower((string) ($mediaRow['file_type'] ?? 'photo')),
+            ];
+        }
+    }
+} catch (Throwable $error) {
+    $reportLoadError = $error->getMessage();
+}
 ?>
 
 <!DOCTYPE html>
@@ -35,22 +204,16 @@ $archivedThreadsUrl = $isAuthenticated ? 'pages/user/user-threads.php?status=Arc
     <link rel="stylesheet" href="style/shared/post.css">
 
     <script src="pages/shared-js/media-carousel.js" defer></script>
-
-    <style>
-        .sidebar-intro {
-            text-align: center;
-        }
-    </style>
-
     <script>
         const isAuthenticated = <?php echo $isAuthenticated ? 'true' : 'false'; ?>;
         const loginUrl = <?php echo json_encode($loginUrl); ?>;
 
         document.addEventListener('DOMContentLoaded', () => {
             if (!isAuthenticated) {
-                document.querySelectorAll('[data-login-required="true"]').forEach(element => {
+                document.querySelectorAll('.post-link, .post-upvote, .post-comment, .post-resolved').forEach(element => {
                     element.addEventListener('click', (e) => {
                         e.preventDefault();
+                        e.stopPropagation();
                         window.location.href = loginUrl;
                     });
                 });
@@ -73,15 +236,27 @@ $archivedThreadsUrl = $isAuthenticated ? 'pages/user/user-threads.php?status=Arc
                 <i class="fa-solid fa-magnifying-glass"></i>
             </div>
 
+            <?php if ($isAuthenticated): ?>
+            <div class="auth-state-pill auth-state-pill--user">
+                Logged in as <?php echo $safeUsername; ?>
+            </div>
+            <?php endif; ?>
+
+            <?php if ($isAuthenticated): ?>
             <div class="icon-button-wrapper">
                 <button type="button" class="icon-button">
                     <i class="fa-solid fa-bell"></i>
                 </button>
 
-                <button type="button" class="icon-button">
+                <button type="button" class="icon-button" title="Log out" onclick="window.location.href='<?php echo $logoutUrl; ?>'">
                     <i class="fa-solid fa-user"></i>
                 </button>
             </div>
+            <?php else: ?>
+            <div class="login-button">
+                <button type="button" onclick="window.location.href='<?php echo $loginUrl; ?>'">LOG IN</button>
+            </div>
+            <?php endif; ?>
         </header>
 
         <aside class="sidebar">
@@ -152,423 +327,173 @@ $archivedThreadsUrl = $isAuthenticated ? 'pages/user/user-threads.php?status=Arc
 
     <aside class="threads-wrapper"></aside>
 
-    <!--====== POSTS ======-->
     <div class="main-wrapper">
         <main>
-            <!--============================== POST 1 ==============================-->
-            <div class="filter">
+            <form method="get" class="filter">
                 <div class="filter-group">
                     <label for="status-filter">Status:</label>
-                    <select id="status-filter" name="status">
-                        <option value="">All</option>
-                        <option value="pending">Pending</option>
-                        <option value="approved">Approved</option>
-                        <option value="rejected">Rejected</option>
-                        <option value="resolved">Resolved</option>
+                    <select id="status-filter" name="status" onchange="this.form.submit()">
+                        <option value="" <?php echo $selectedStatus === '' ? 'selected' : ''; ?>>All</option>
+                        <?php foreach ($allowedStatuses as $statusOption): ?>
+                            <option value="<?php echo escape_html($statusOption); ?>" <?php echo $selectedStatus === $statusOption ? 'selected' : ''; ?>>
+                                <?php echo escape_html($statusOption); ?>
+                            </option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
 
                 <div class="filter-group">
                     <label for="category-filter">Category:</label>
-                    <select id="category-filter" name="category">
-                        <option value="">All</option>
-                        <option value="">Electronics</option>
-                        <option value="">Clothing</option>
-                        <option value="">Documents</option>
-                        <option value="">Accessories</option>
-                        <option value="">Others</option>
+                    <select id="category-filter" name="category" onchange="this.form.submit()">
+                        <option value="" <?php echo $selectedCategoryId === null ? 'selected' : ''; ?>>All</option>
+                        <?php foreach ($categories as $category): ?>
+                            <?php $categoryId = (int) ($category['category_id'] ?? 0); ?>
+                            <option value="<?php echo $categoryId; ?>" <?php echo $selectedCategoryId === $categoryId ? 'selected' : ''; ?>>
+                                <?php echo escape_html((string) ($category['category_name'] ?? '')); ?>
+                            </option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
-            </div>
+            </form>
 
-            <!--============================== POST 1 ==============================-->
-            <a href="<?php echo $isAuthenticated ? 'pages/user/user-report-details.php' : $loginUrl; ?>" class="post-link"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
-                <section class="post">
-                    <div class="profile-details">
-                        <div class="post-pfp"><img src="assets/user_images/user1.jpg" alt=""></div>
-                        <span class="username">GreenArcher_01</span>
-                        <span>•</span>
-                        <span class="hours-ago">Just now</span>
-                    </div>
-
-                    <div class="post-details">
-                        <!-- location -->
-                        <div class="post-details-box">
-                            <i class="fa-solid fa-location-dot" style="color: var(--colorRed);"></i>
-                            <span>Taft Avenue, Manila</span>
-                        </div>
-
-                        <!-- category -->
-                        <div class="post-details-box post-details-box-category">
-                            <i class="fa-solid fa-layer-group" style="color: var(--colorYellow);"></i>
-                            <span>Flooding</span>
-                        </div>
-
-                        <!-- date and time -->
-                        <div class="post-details-box">
-                            <i class="fa-solid fa-clock" style="color: var(--colorGreen);"></i>
-                            <span>July 21, 2026</span> | <span>02:14 PM</span>
-                        </div>
-                    </div>
-
-                    <!---------- title and description---------->
-                    <div class="post-title-and-description">
-                        <h2><span class="post-title">Gutter-deep flooding outside DLSU after sudden downpour</span></h2>
-                        <span class="post-description">Heavy torrential rain over the last 30 minutes has caused
-                            localized
-                            flooding along Taft Ave, specifically northbound in front of De La Salle University. Light
-                            vehicles are slowing down significantly to navigate the water. Gutter-deep, passable but
-                            moving
-                            very slowly.</span>
-                    </div>
-
-                    <!---------- MEDIA ATTACHMENTS ---------->
-                    <div class="post-media-carousel">
-                        <!-- scroll container -->
-                        <div class="carousel-container">
-
-                            <!-- slide 1: Image -->
-                            <div class="carousel-slide">
-                                <img src="assets/report_media/media1-1.jfif" alt="">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="post-buttons">
-                        <div class="post-buttons-left">
-                            <button class="post-upvote"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
-                                <i class="fa-solid fa-square-caret-up"></i>
-                                <span>52</span>
-                            </button>
-                            <button class="post-comment"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
-                                <i class="fa-solid fa-comment-dots"></i>
-                                <span>2</span>
-                            </button>
-                            <button class="post-resolved"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
-                                <i class="fa-solid fa-circle-check"></i>
-                                Resolved | <span>12</span>
-                            </button>
-                            
-                        </div>
-
-                        <div class="post-buttons-right">
-                            <button class="verified">
-                                <i class="fa-solid fa-user-check"></i>
-                                Verified by Officials
-                            </button>
-                            <button class="status">
-                                Status: RESOLVED</button>
-                        </div>
-                    </div>
+            <?php if ($reportLoadError !== null): ?>
+                <section class="post" style="padding: 16px;">
+                    <h2 style="margin-bottom: 8px;">Unable to load reports</h2>
+                    <p style="margin-bottom: 0;">Please make sure MySQL is running and the database has been imported.</p>
                 </section>
-            </a>
-            <hr>
-
-            <!--============================== POST 2 ==============================-->
-            <a href="<?php echo $isAuthenticated ? 'pages/user/user-report-details.php?id=2' : $loginUrl; ?>" class="post-link"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
-                <section class="post">
-                    <div class="profile-details">
-                        <div class="post-pfp"><img src="assets/user_images/user2.jpg" alt=""></div>
-                        <span class="username">MichaelJackson</span> <!-- BACKEND PHP LOGIC HERE -->
-                        <span>•</span>
-                        <span class="hours-ago">36 mins ago</span>
-                    </div>
-
-                    <!------------ POST DETAILS ------------>
-                    <div class="post-details">
-                        <!-- location -->
-                        <div class="post-details-box">
-                            <i class="fa-solid fa-location-dot" style="color: var(--colorRed);"></i>
-                            <span>Alabang, Muntinlupa</span>
-                        </div>
-
-                        <!-- category -->
-                        <div class="post-details-box post-details-box-category">
-                            <i class="fa-solid fa-layer-group" style="color: var(--colorYellow);"></i>
-                            <span>Traffic Congestion</span>
-                        </div>
-
-                        <!-- date and time -->
-                        <div class="post-details-box">
-                            <i class="fa-solid fa-clock" style="color: var(--colorGreen);"></i>
-                            <span>July 08, 2026</span> | <span>09:30 AM</span>
-                        </div>
-                    </div>
-
-                    <!---------- TITLE & DESCRIPTION ---------->
-                    <div class="post-title-and-description">
-                        <!-- title -->
-                        <h2><span class="post-title">Traffic congested Near Alabang SLEX Southbound</span></h2>
-                        <!-- description -->
-                        <span class="post-description">Heavy traffic buildup on SLEX Southbound near the Alabang exit.
-                            Appears to be caused by a stalled vehicle blocking the rightmost lane. Traffic is backing up
-                            approximately 3km. Avoid this route and use alternative roads. MMDA on the scene.</span>
-                    </div>
-
-                    <!---------- MEDIA ATTACHMENTS ---------->
-                    <div class="post-media-carousel">
-                        <!-- scroll container -->
-                        <div class="carousel-container">
-
-                            <!-- slide 1: Image -->
-                            <div class="carousel-slide">
-                                <img src="assets/report_media/media2-1.jpg" alt="">
-                            </div>
-
-                            <!-- slide 2: GIF (Handled identically to images) -->
-                            <div class="carousel-slide">
-                                <img src="assets/report_media/media2-2.jfif" alt="">
-                            </div>
-
-                            <!-- slide 3: Video Media -->
-                            <div class="carousel-slide">
-                                <img src="assets/report_media/media2-3.jpg" alt="">
-                            </div>
-
-                            <!-- slide 4: Video -->
-                            <div class="carousel-slide">
-                                <video src="assets/report_media/media2-4.mp4" controls muted playsinline></video>
-                            </div>
-
-                        </div>
-
-                        <!-- Navigation Arrows -->
-                        <button class="carousel-btn prev" aria-label="Previous slide" onclick="moveCarousel(this, -1)">
-                            <i class="fa-solid fa-chevron-left"></i>
-                        </button>
-                        <button class="carousel-btn next" aria-label="Next slide" onclick="moveCarousel(this, 1)">
-                            <i class="fa-solid fa-chevron-right"></i>
-                        </button>
-
-                    </div>
-
-                    <!---------- post buttons ---------->
-                    <div class="post-buttons">
-                        <div class="post-buttons-left">
-                            <button class="post-upvote"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
-                                <i class="fa-solid fa-square-caret-up"></i>
-                                <span>34</span>
-                            </button>
-                            <button class="post-comment"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
-                                <i class="fa-solid fa-comment-dots"></i>
-                                <span>2</span>
-                            </button>
-                            <button class="post-resolved"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
-                                <i class="fa-solid fa-circle-check"></i>
-                                Resolved | <span>3</span>
-                            </button>
-                            
-                        </div>
-
-                        <div class="post-buttons-right">
-                            <button class="verified">
-                                <i class="fa-solid fa-user-check"></i>
-                                Verified by Officials
-                            </button>
-                            <button class="status">
-                                Status: ACTIVE</button>
-                        </div>
-                    </div>
+            <?php elseif ($reports === []): ?>
+                <section class="post" style="padding: 16px;">
+                    <h2 style="margin-bottom: 8px;">No reports found</h2>
+                    <p style="margin-bottom: 0;">Try a different filter or create a new report.</p>
                 </section>
-            </a>
+            <?php else: ?>
+                <?php $totalReports = count($reports); ?>
+                <?php foreach ($reports as $index => $report): ?>
+                    <?php
+                    $reportId = (int) ($report['report_id'] ?? 0);
+                    $displayUsername = trim((string) ($report['username'] ?? ''));
+                    if ($displayUsername === '') {
+                        $displayUsername = trim(((string) ($report['first_name'] ?? '')) . ' ' . ((string) ($report['last_name'] ?? '')));
+                    }
+                    if ($displayUsername === '') {
+                        $displayUsername = 'Anonymous';
+                    }
 
-            <hr>
+                    $locationParts = [];
+                    if (!empty($report['district'])) {
+                        $locationParts[] = (string) $report['district'];
+                    }
+                    if (!empty($report['city'])) {
+                        $locationParts[] = (string) $report['city'];
+                    }
+                    $locationLabel = $locationParts !== [] ? implode(', ', $locationParts) : 'Unknown location';
 
-            <!--============================== POST 3 ==============================-->
-            <a href="<?php echo $isAuthenticated ? 'pages/user/user-report-details.php?id=3' : $loginUrl; ?>" class="post-link"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
-                <section class="post">
-                    <div class="profile-details">
-                        <div class="post-pfp"><img src="assets/user_images/user3.jpg" alt=""></div>
-                        <span class="username">ManilaCommuter</span>
-                        <span>•</span>
-                        <span class="hours-ago">2 hours ago</span>
-                    </div>
+                    $status = (string) ($report['status'] ?? 'Pending');
+                    $statusUpper = strtoupper($status);
+                    $isVerified = ((int) ($report['verified_by'] ?? 0) > 0) || in_array($status, ['Verified', 'Resolved'], true);
+                    $timeLabel = relative_time_label((string) ($report['created_at'] ?? ''));
+                    $dateTimeLabels = report_date_time_labels((string) ($report['created_at'] ?? ''));
+                    $mediaItems = $mediaByReport[$reportId] ?? [];
+                    ?>
 
-                    <div class="post-details">
-                        <div class="post-details-box">
-                            <i class="fa-solid fa-location-dot" style="color: var(--colorRed);"></i>
-                            <span>Ortigas Avenue, Pasig City</span>
-                        </div>
-
-                        <div class="post-details-box post-details-box-category">
-                            <i class="fa-solid fa-layer-group" style="color: var(--colorYellow);"></i>
-                            <span>Vehicle Accident</span>
-                        </div>
-
-                        <div class="post-details-box">
-                            <i class="fa-solid fa-clock" style="color: var(--colorGreen);"></i>
-                            <span>July 20, 2026</span> |
-                            <span>07:45 AM</span>
-                        </div>
-                    </div>
-
-                    <div class="post-title-and-description">
-                        <h2>
-                            <span class="post-title">
-                                Multi-vehicle collision near Meralco Avenue intersection
-                            </span>
-                        </h2>
-
-                        <span class="post-description">
-                            A three-car fender bender has blocked two center lanes eastbound on
-                            Ortigas Ave right before Meralco Ave. Major bottleneck forming all the
-                            way back to EDSA-Ortigas flyover. Enforcers are currently redirecting
-                            flow, but expect at least a 20-30 minute delay.
-                        </span>
-                    </div>
-
-                    <!-- MEDIA ATTACHMENTS -->
-                    <div class="post-media-carousel">
-
-                        <div class="carousel-container">
-                            <div class="carousel-slide">
-                                <img src="assets/report_media/media3-1.jfif" alt="">
+                    <a href="<?php echo $isAuthenticated ? 'pages/user/user-report-details.php?id=' . $reportId : $loginUrl; ?>" class="post-link"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
+                        <section class="post">
+                            <div class="profile-details">
+                                <div class="post-pfp"><img src="assets/user_images/user1.jpg" alt=""></div>
+                                <span class="username"><?php echo escape_html($displayUsername); ?></span>
+                                <span>•</span>
+                                <span class="hours-ago"><?php echo escape_html($timeLabel); ?></span>
                             </div>
-                        </div>
 
-                        <button class="carousel-btn prev" aria-label="Previous slide" onclick="moveCarousel(this, -1)">
-                            <i class="fa-solid fa-chevron-left"></i>
-                        </button>
+                            <div class="post-details">
+                                <div class="post-details-box">
+                                    <i class="fa-solid fa-location-dot" style="color: var(--colorRed);"></i>
+                                    <span><?php echo escape_html($locationLabel); ?></span>
+                                </div>
 
-                        <button class="carousel-btn next" aria-label="Next slide" onclick="moveCarousel(this, 1)">
-                            <i class="fa-solid fa-chevron-right"></i>
-                        </button>
+                                <div class="post-details-box post-details-box-category">
+                                    <i class="fa-solid fa-layer-group" style="color: var(--colorYellow);"></i>
+                                    <span><?php echo escape_html((string) ($report['category_name'] ?? 'Uncategorized')); ?></span>
+                                </div>
 
-                    </div>
-
-                    <!-- POST BUTTONS -->
-                    <div class="post-buttons">
-                        <div class="post-buttons-left">
-                            <button class="post-upvote"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
-                                <i class="fa-solid fa-square-caret-up"></i>
-                                <span>87</span>
-                            </button>
-
-                            <button class="post-comment"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
-                                <i class="fa-solid fa-comment-dots"></i>
-                                <span>3</span>
-                            </button>
-
-                            <button class="post-resolved"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
-                                <i class="fa-solid fa-circle-check"></i>
-                                Resolved | <span>0</span>
-                            </button>
-                        </div>
-
-                        <div class="post-buttons-right">
-                            <button class="verified">
-                                <i class="fa-solid fa-user-check"></i>
-                                Verified by Officials
-                            </button>
-
-                            <button class="status">
-                                Status: ACTIVE
-                            </button>
-                        </div>
-                    </div>
-                </section>
-            </a>
-
-            <hr>
-
-            <!--============================== POST 4 ==============================-->
-            <a href="<?php echo $isAuthenticated ? 'pages/user/user-report-details.php?id=4' : $loginUrl; ?>" class="post-link"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
-                <section class="post">
-                    <div class="profile-details">
-                        <div class="post-pfp"><img src="assets/user_images/user4.jpg" alt=""></div>
-                        <span class="username">NightOwl_Driver</span>
-                        <span>•</span>
-                        <span class="hours-ago">Yesterday</span>
-                    </div>
-
-                    <div class="post-details">
-                        <div class="post-details-box">
-                            <i class="fa-solid fa-location-dot" style="color: var(--colorRed);"></i>
-                            <span>Katipunan, Quezon City</span>
-                        </div>
-
-                        <div class="post-details-box post-details-box-category">
-                            <i class="fa-solid fa-layer-group" style="color: var(--colorYellow);"></i>
-                            <span>Road Blockage</span>
-                        </div>
-
-                        <div class="post-details-box">
-                            <i class="fa-solid fa-clock" style="color: var(--colorGreen);"></i>
-                            <span>July 20, 2026</span> |
-                            <span>10:15 PM</span>
-                        </div>
-                    </div>
-
-                    <div class="post-title-and-description">
-                        <h2>
-                            <span class="post-title">
-                                Emergency re-blocking near Ateneo Gate 3 Northbound
-                            </span>
-                        </h2>
-
-                        <span class="post-description">
-                            DPWH has unexpectedly blocked off the leftmost lane for urgent asphalt
-                            repairs just past the flyover. Heavy machinery is occupying the lane.
-                            Tailback is already reaching Aurora Boulevard underpass. Expect
-                            slow-moving traffic until early morning.
-                        </span>
-                    </div>
-
-                    <!-- MEDIA ATTACHMENTS -->
-                    <div class="post-media-carousel">
-
-                        <div class="carousel-container">
-
-                            <div class="carousel-slide">
-                                <img src="assets/report_media/media4-1.png" alt="">
+                                <div class="post-details-box">
+                                    <i class="fa-solid fa-clock" style="color: var(--colorGreen);"></i>
+                                    <span><?php echo escape_html($dateTimeLabels['date']); ?></span> | <span><?php echo escape_html($dateTimeLabels['time']); ?></span>
+                                </div>
                             </div>
-                        </div>
 
-                        <button class="carousel-btn prev" aria-label="Previous slide" onclick="moveCarousel(this, -1)">
-                            <i class="fa-solid fa-chevron-left"></i>
-                        </button>
+                            <div class="post-title-and-description">
+                                <h2><span class="post-title"><?php echo escape_html((string) ($report['title'] ?? 'Untitled report')); ?></span></h2>
+                                <span class="post-description"><?php echo escape_html((string) ($report['description'] ?? '')); ?></span>
+                            </div>
 
-                        <button class="carousel-btn next" aria-label="Next slide" onclick="moveCarousel(this, 1)">
-                            <i class="fa-solid fa-chevron-right"></i>
-                        </button>
+                            <div class="post-media-carousel">
+                                <div class="carousel-container">
+                                    <?php if ($mediaItems === []): ?>
+                                        <div class="carousel-slide">
+                                            <img src="assets/report_media/media1-1.jfif" alt="No media attached">
+                                        </div>
+                                    <?php else: ?>
+                                        <?php foreach ($mediaItems as $media): ?>
+                                            <?php $mediaPath = normalize_media_url((string) ($media['file_url'] ?? '')); ?>
+                                            <div class="carousel-slide">
+                                                <?php if (($media['file_type'] ?? 'photo') === 'video'): ?>
+                                                    <video src="<?php echo escape_html($mediaPath); ?>" controls muted playsinline></video>
+                                                <?php else: ?>
+                                                    <img src="<?php echo escape_html($mediaPath); ?>" alt="Report attachment">
+                                                <?php endif; ?>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </div>
 
-                    </div>
+                                <?php if (count($mediaItems) > 1): ?>
+                                    <button class="carousel-btn prev" aria-label="Previous slide" onclick="moveCarousel(this, -1)">
+                                        <i class="fa-solid fa-chevron-left"></i>
+                                    </button>
+                                    <button class="carousel-btn next" aria-label="Next slide" onclick="moveCarousel(this, 1)">
+                                        <i class="fa-solid fa-chevron-right"></i>
+                                    </button>
+                                <?php endif; ?>
+                            </div>
 
-                    <div class="post-buttons">
-                        <div class="post-buttons-left">
-                            <button class="post-upvote"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
-                                <i class="fa-solid fa-square-caret-up"></i>
-                                <span>18</span>
-                            </button>
+                            <div class="post-buttons">
+                                <div class="post-buttons-left">
+                                    <button type="button" class="post-upvote"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
+                                        <i class="fa-solid fa-square-caret-up"></i>
+                                        <span><?php echo (int) ($report['upvote_count'] ?? 0); ?></span>
+                                    </button>
+                                    <button type="button" class="post-comment"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
+                                        <i class="fa-solid fa-comment-dots"></i>
+                                        <span><?php echo (int) ($report['comment_count'] ?? 0); ?></span>
+                                    </button>
+                                    <button type="button" class="post-resolved"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
+                                        <i class="fa-solid fa-circle-check"></i>
+                                        <?php echo escape_html($status); ?> | <span><?php echo strcasecmp($status, 'Resolved') === 0 ? '1' : '0'; ?></span>
+                                    </button>
+                                </div>
 
-                            <button class="post-comment"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
-                                <i class="fa-solid fa-comment-dots"></i>
-                                <span>2</span>
-                            </button>
+                                <div class="post-buttons-right">
+                                    <?php if ($isVerified): ?>
+                                        <button class="verified">
+                                            <i class="fa-solid fa-user-check"></i>
+                                            Verified by Officials
+                                        </button>
+                                    <?php endif; ?>
+                                    <button class="status">
+                                        Status: <?php echo escape_html($statusUpper); ?>
+                                    </button>
+                                </div>
+                            </div>
+                        </section>
+                    </a>
 
-                            <button class="post-resolved"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
-                                <i class="fa-solid fa-circle-check"></i>
-                                Resolved | <span>1</span>
-                            </button>
-
-                            
-                        </div>
-
-                        <div class="post-buttons-right">
-                            <button class="verified">
-                                <i class="fa-solid fa-user-check"></i>
-                                Verified by Officials
-                            </button>
-
-                            <button class="status">
-                                Status: IN PROGRESS
-                            </button>
-                        </div>
-                    </div>
-                </section>
-            </a>
+                    <?php if ($index < $totalReports - 1): ?>
+                        <hr>
+                    <?php endif; ?>
+                <?php endforeach; ?>
+            <?php endif; ?>
         </main>
     </div>
 </body>
-
 </html>

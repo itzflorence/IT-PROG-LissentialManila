@@ -1,3 +1,8 @@
+<?php
+declare(strict_types=1);
+
+$error = isset($_GET['error']) ? trim((string) $_GET['error']) : '';
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -20,6 +25,9 @@
         <main class="auth-box">
             <div class="auth-header">
                 <h2>Sign up</h2>
+                <?php if ($error !== ''): ?>
+                    <p class="error-message"><?php echo htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?></p>
+                <?php endif; ?>
             </div>
 
             <form action="register_process.php" method="POST">

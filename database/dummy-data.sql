@@ -29,18 +29,19 @@ ALTER TABLE users AUTO_INCREMENT = 1;
 /*
 ==========================================
 1. USERS
-Password hash placeholder: '$2y$10$e8T/...' (Bcrypt example)
+Password hashes are valid bcrypt hashes for all seeded users
 Assumes location_ids correspond to the order in locations.sql
-password: mySecretPassword123
+assigned_location_id must reference locations.location_id (NULL for non-official accounts)
+password: pass123
 ==========================================
 */
-INSERT INTO users (user_id, phone_number, email, first_name, last_name, username, password_hash, role, assigned_area, home_location_id) VALUES
-(1, '+639301239988', 'mgatmaitan@lissentialmanila.ph', 'Max', 'Gatmaitan', 'SysAdmin_Max', '$2y$10$K7Z2/eUvV8b4fW9M9X3rOe0W6u1gS0fH3k2mR5zE9q7w8e9r0t1y2', 'Admin', 'NCR All Zones', 46),
-(2, '+639201112233', 'rmendoza@marikina.gov.ph', 'Rosario', 'Mendoza', 'LGU_Marikina_09', '$2y$10$O0N8u5mX3zV1w7p4q9e2rO0k4s8t5v6w7x8y9z0a1b2c3d4e5f6g7', 'Official', 'Marikina', 115),
-(3, '+639171234567', 'greenarcher01@gmail.com', 'Green', 'Archer', 'GreenArcher_01', '$2y$10$U4b9x2z1v8w7m6p5q3e4rO2k8s5t9v0w1x2y3z4a5b6c7d8e9f0g1', 'Student', NULL, 8),
-(4, '+639189876543', 'mdelossantos@gmail.com', 'Michael', 'delos Santos', 'MichaelJackson', '$2y$10$F3m7u2n1o8p9q0v5w4e3rO4k6s1t2v3w4x5y6z7a8b9c0d1e2f3g4', 'Student', NULL, 131),
-(5, '+639192223333', 'commuter.manila@gmail.com', 'Maria', 'Santos', 'ManilaCommuter', '$2y$10$R9k4u1n8o7p2q5v0w3e1rO6k3s9t5v4w2x1y0z9a8b7c6d5e4f3g2', 'Student', NULL, 80),
-(6, '+639215556666', 'nightowl@yahoo.com', 'Kevin', 'Reyes', 'NightOwl_Driver', '$2y$10$A2m8u4n9o3p7q1v6w5e0rO8k5s2t1v0w9x8y7z6a5b4c3d2e1f0g9', 'Student', NULL, 47);
+INSERT INTO users (user_id, phone_number, email, first_name, last_name, username, password_hash, role, assigned_location_id, home_location_id) VALUES
+(1, '+639301239988', 'mgatmaitan@lissentialmanila.ph', 'Max', 'Gatmaitan', 'SysAdmin_Max', '$2y$10$tSGSizISOsH1NqWhYZT24OBF0CUCMmCDAPRinIg8ajE94YvmGMuzW', 'Admin', NULL, 46),
+(2, '+639201112233', 'rmendoza@marikina.gov.ph', 'Rosario', 'Mendoza', 'LGU_Marikina_09', '$2y$10$tSGSizISOsH1NqWhYZT24OBF0CUCMmCDAPRinIg8ajE94YvmGMuzW', 'Official', 115, 115),
+(3, '+639171234567', 'greenarcher01@gmail.com', 'Green', 'Archer', 'GreenArcher_01', '$2y$10$tSGSizISOsH1NqWhYZT24OBF0CUCMmCDAPRinIg8ajE94YvmGMuzW', 'Student', NULL, 8),
+(4, '+639189876543', 'mdelossantos@gmail.com', 'Michael', 'delos Santos', 'MichaelJackson', '$2y$10$tSGSizISOsH1NqWhYZT24OBF0CUCMmCDAPRinIg8ajE94YvmGMuzW', 'Student', NULL, 131),
+(5, '+639192223333', 'commuter.manila@gmail.com', 'Maria', 'Santos', 'ManilaCommuter', '$2y$10$tSGSizISOsH1NqWhYZT24OBF0CUCMmCDAPRinIg8ajE94YvmGMuzW', 'Student', NULL, 80),
+(6, '+639215556666', 'nightowl@yahoo.com', 'Kevin', 'Reyes', 'NightOwl_Driver', '$2y$10$tSGSizISOsH1NqWhYZT24OBF0CUCMmCDAPRinIg8ajE94YvmGMuzW', 'Student', NULL, 47);
 
 /*
 ==========================================

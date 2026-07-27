@@ -189,3 +189,47 @@
     margin-top: var(--space-large);
     font-size: .7rem;
 }
+
+/* for guests */
+.login-button button {
+    width: 100%;
+    padding: var(--space-xsmall) var(--space-large);
+    font-weight: 600;
+    font-size: var(--font-medium);
+    border-radius: 8px;
+    box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+    
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    cursor: pointer;
+
+    transition: 0.2s ease-out;
+}
+
+.login-button button:hover {
+    transform: scale(1.05);
+}
+
+.sidebar-intro {
+    text-align: center;
+}
+
+.auth-state-pill {
+    padding: 0.4rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+
+.auth-state-pill--guest {
+    background: #fff3cd;
+    color: #7a5c00;
+    border: 1px solid #ffe69c;
+}
+
+.auth-state-pill--user {
+    background: #d1e7dd;
+    color: #0f5132;
+    border: 1px solid #a3cfbb;
+}

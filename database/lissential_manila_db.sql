@@ -53,8 +53,8 @@ CREATE TABLE users (
     -- User Level / Role: Student (commuters/drivers), Official (LGU/MMDA), Admin
     role ENUM('Student', 'Official', 'Admin') NOT NULL DEFAULT 'Student',
     
-    -- For Officials: which area/district they manage
-    assigned_area VARCHAR(100),
+    -- For Officials: assigned managed area from fixed locations data
+    assigned_location_id INT,
     
     -- For all users: home location (where they get notifications from)
     home_location_id INT NOT NULL,
@@ -70,6 +70,7 @@ CREATE TABLE users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     
+    FOREIGN KEY (assigned_location_id) REFERENCES locations(location_id) ON DELETE SET NULL,
     FOREIGN KEY (home_location_id) REFERENCES locations(location_id)
 );
 

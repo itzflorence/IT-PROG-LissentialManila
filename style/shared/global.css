@@ -15,11 +15,11 @@
     --colorComplement: #000000;
 
     /* Responsive Spacing Scale */
-    --space-xsmall: clamp(0.25rem, 0.2rem + 0.3vw, 0.5rem);   /* 4 → 8px */
-    --space-small:  clamp(0.5rem, 0.4rem + 0.5vw, 0.75rem);   /* 8 → 12px */
-    --space-medium: clamp(0.75rem, 0.6rem + 0.8vw, 1.5rem);   /* 12 → 24px */
-    --space-large:  clamp(1.25rem, 1rem + 1vw, 2.5rem);       /* 20 → 40px */
-    --space-xlarge: clamp(2rem, 1.5rem + 2vw, 4rem);          /* 32 → 64px */
+    --space-xsmall: clamp(0.25rem, 0.2rem + 0.3vw, 0.5rem);     /* 4 → 8px */
+    --space-small:  clamp(0.5rem, 0.4rem + 0.5vw, 0.75rem);     /* 8 → 12px */
+    --space-medium: clamp(0.75rem, 0.6rem + 0.8vw, 1.5rem);     /* 12 → 24px */
+    --space-large:  clamp(1.25rem, 1rem + 1vw, 2.5rem);         /* 20 → 40px */
+    --space-xlarge: clamp(2rem, 1.5rem + 2vw, 4rem);            /* 32 → 64px */
     /* Responsive Font Scale */
     --font-xsmall:  clamp(0.75rem, 0.72rem + 0.15vw, 0.875rem); /* 12 → 14px */
     --font-small:   clamp(0.875rem, 0.83rem + 0.2vw, 1rem);     /* 14 → 16px */
@@ -64,4 +64,9 @@ button {
     color: var(--color1);
     font-weight: 500;
     padding: var(--space-xsmall);
+}
+
+/* ******************************************* */
+.error-message {
+  color: var(--colorRed);
 }

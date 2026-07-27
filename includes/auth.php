@@ -13,7 +13,17 @@ function is_authenticated(): bool
 {
     ensure_session_started();
 
-    return isset($_SESSION['user_id']);
+    if (!isset($_SESSION['user_id'], $_SESSION['username'], $_SESSION['role'])) {
+        return false;
+    }
+
+    $userId = filter_var($_SESSION['user_id'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+    $username = trim((string) $_SESSION['username']);
+    $role = strtolower((string) $_SESSION['role']);
+
+    return $userId !== false
+        && $username !== ''
+        && in_array($role, ['student', 'official', 'admin'], true);
 }
 
 function require_login(string $loginPath = '../auth/login.php'): void
