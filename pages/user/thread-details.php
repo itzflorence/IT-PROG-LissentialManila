@@ -1,7 +1,10 @@
 <?php
 
 declare(strict_types=1);
+require_once __DIR__ . '/../../includes/auth.php';
 require_once __DIR__ . '/../../includes/thread-query.php';
+
+require_login('../auth/login.php');
 
 $threadId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 $thread = null;
@@ -38,7 +41,7 @@ if (!$threadId || $threadId < 1) {
 <body>
 <header class="details-navbar">
     <a href="user-threads.php" class="details-navbar__back"><i class="fa-solid fa-arrow-left"></i> Back to Threads</a>
-    <a href="user-home.php"><img src="../../assets/LOGO/logo_normal.png" alt="Lissential Manila logo"></a>
+    <a href="../../index.php"><img src="../../assets/LOGO/logo_normal.png" alt="Lissential Manila logo"></a>
 </header>
 
 <main class="thread-details-page">
@@ -102,3 +105,5 @@ if (!$threadId || $threadId < 1) {
 </main>
 </body>
 </html>
+
+        <a href="../../index.php"><img src="../../assets/LOGO/logo_normal.png" alt="Lissential Manila logo"></a>

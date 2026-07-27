@@ -1,0 +1,50 @@
+* {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.entry-box {
+    border: 1px solid darkblue;
+    padding: 10px;   
+}
+
+.logout {
+    background-color: rgb(68, 151, 223);
+    padding: 10px;
+    text-decoration: none;
+    color: white;
+}
+
+.logout:hover {
+    background-color: color-mix(in srgb, aliceblue 50%, rgb(36, 173, 162) 50%);
+}
+
+.create-entry {
+    background-color: rgb(31, 224, 238);
+    padding: 10px;
+    text-decoration: none;
+}
+
+.create-entry:hover {
+    background-color: color-mix(in srgb, aliceblue 50%, rgb(16, 110, 103) 50%);
+}
+
+.auth-container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.login-labels {
+    display: flex;
+    flex-direction: column;
+    min-width: 250px;
+}
+
+.input {
+        padding: 4px;   
+}
+
+.login-box {
+    margin-top: 20px
+}

@@ -1,3 +1,24 @@
+
+
+<?php
+declare(strict_types=1);
+
+require_once __DIR__ . '/includes/auth.php';
+
+$isAuthenticated = is_authenticated();
+
+$username = $_SESSION['username'] ?? null;
+$role = $_SESSION['role'] ?? null;
+
+$loginUrl = 'pages/auth/login.php';
+$registerUrl = 'pages/auth/register.php';
+$createReportUrl = $isAuthenticated ? 'pages/user/user-create-report.php' : $registerUrl;
+$myReportsUrl = $isAuthenticated ? 'pages/user/user-my-reports.php' : $loginUrl;
+$activeThreadsUrl = $isAuthenticated ? 'pages/user/user-active-threads.php' : $loginUrl;
+$resolvedThreadsUrl = $isAuthenticated ? 'pages/user/user-resolved-threads.php' : $loginUrl;
+$archivedThreadsUrl = $isAuthenticated ? 'pages/user/user-threads.php?status=Archived' : $loginUrl;
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -5,10 +26,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LissentialManila</title>
+    <link rel="stylesheet" href="style/shared/global.css">
+    <link rel="stylesheet" href="style/shared/navbar.css">
     <link rel="stylesheet" href="style/user/home.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
         integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
-        crossorigin="anonymous" referrerpolicy="no-referrer" />
+        crossorigin="anonymous" referrerpolicy="no-referrer"/>
     <link rel="stylesheet" href="style/shared/post.css">
 
     <script src="pages/shared-js/media-carousel.js" defer></script>
@@ -18,6 +41,22 @@
             text-align: center;
         }
     </style>
+
+    <script>
+        const isAuthenticated = <?php echo $isAuthenticated ? 'true' : 'false'; ?>;
+        const loginUrl = <?php echo json_encode($loginUrl); ?>;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!isAuthenticated) {
+                document.querySelectorAll('[data-login-required="true"]').forEach(element => {
+                    element.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        window.location.href = loginUrl;
+                    });
+                });
+            }
+        });
+    </script>
 </head>
 
 <body>
@@ -46,22 +85,40 @@
         </header>
 
         <aside class="sidebar">
+            <?php if (!$isAuthenticated): ?>
             <div class="sidebar-options-wrapper">
                 <span class="sidebar-title sidebar-intro">Join the Anti-Kamote Gang and create an account for LissentialManila!</span>
             </div>
+            <?php endif; ?>
 
             <div class="create-report">
-                <button>CREATE ACCOUNT</button>
+                <button type="button" onclick="window.location.href='<?php echo $createReportUrl; ?>'">
+                    <?php echo $isAuthenticated ? 'CREATE REPORT' : 'CREATE ACCOUNT'; ?>
+                </button>
             </div>
 
             <div class="sidebar-options-wrapper">
                 <span class="sidebar-title">FEED</span>
                 <div class="sidebar-options">
-                    <a href="user-home.php">All Reports</a>
+                    <a href="index.php">All Reports</a>
                     <a href="#">Official Advisories</a>
                 </div>
                 <hr>
             </div>
+
+            <?php if ($isAuthenticated): ?>
+            <div class="sidebar-options-wrapper">
+                <span class="sidebar-title">MY ACTIVITY</span>
+                <div class="sidebar-options">
+                    <a href="<?php echo $myReportsUrl; ?>">My Reports</a>
+                    <a href="#">Reports Near Me</a>
+                    <a href="#">Saved Locations</a>
+                    <a href="#">My Comments</a>
+                    <a href="#">Account Profile</a>
+                </div>
+                <hr>
+            </div>
+            <?php endif; ?>
 
             <div class="sidebar-options-wrapper">
                 <span class="sidebar-title">CATEGORIES</span>
@@ -83,9 +140,9 @@
                 <span class="sidebar-title">THREADS</span>
 
                 <div class="sidebar-options">
-                    <a href="pages/user/user-active-threads.php">Active</a>
-                    <a href="pages/user/user-resolved-threads.php">Resolved</a>
-                    <a href="pages/user/user-threads.php?status=Archived">Archived</a>
+                    <a href="<?php echo $activeThreadsUrl; ?>">Active</a>
+                    <a href="<?php echo $resolvedThreadsUrl; ?>">Resolved</a>
+                    <a href="<?php echo $archivedThreadsUrl; ?>">Archived</a>
                 </div>
             </div>
 
@@ -95,9 +152,37 @@
 
     <aside class="threads-wrapper"></aside>
 
+    <!--====== POSTS ======-->
     <div class="main-wrapper">
         <main>
-            <a href="pages/user/user-report.php" class="post-link">
+            <!--============================== POST 1 ==============================-->
+            <div class="filter">
+                <div class="filter-group">
+                    <label for="status-filter">Status:</label>
+                    <select id="status-filter" name="status">
+                        <option value="">All</option>
+                        <option value="pending">Pending</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                        <option value="resolved">Resolved</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="category-filter">Category:</label>
+                    <select id="category-filter" name="category">
+                        <option value="">All</option>
+                        <option value="">Electronics</option>
+                        <option value="">Clothing</option>
+                        <option value="">Documents</option>
+                        <option value="">Accessories</option>
+                        <option value="">Others</option>
+                    </select>
+                </div>
+            </div>
+
+            <!--============================== POST 1 ==============================-->
+            <a href="<?php echo $isAuthenticated ? 'pages/user/user-report-details.php' : $loginUrl; ?>" class="post-link"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
                 <section class="post">
                     <div class="profile-details">
                         <div class="post-pfp"><img src="assets/user_images/user1.jpg" alt=""></div>
@@ -107,97 +192,190 @@
                     </div>
 
                     <div class="post-details">
+                        <!-- location -->
                         <div class="post-details-box">
                             <i class="fa-solid fa-location-dot" style="color: var(--colorRed);"></i>
                             <span>Taft Avenue, Manila</span>
                         </div>
 
+                        <!-- category -->
                         <div class="post-details-box post-details-box-category">
                             <i class="fa-solid fa-layer-group" style="color: var(--colorYellow);"></i>
                             <span>Flooding</span>
                         </div>
 
+                        <!-- date and time -->
                         <div class="post-details-box">
                             <i class="fa-solid fa-clock" style="color: var(--colorGreen);"></i>
                             <span>July 21, 2026</span> | <span>02:14 PM</span>
                         </div>
                     </div>
 
+                    <!---------- title and description---------->
                     <div class="post-title-and-description">
                         <h2><span class="post-title">Gutter-deep flooding outside DLSU after sudden downpour</span></h2>
-                        <span class="post-description">Heavy torrential rain over the last 30 minutes has caused localized flooding along Taft Ave, specifically northbound in front of De La Salle University. Light vehicles are slowing down significantly to navigate the water. Gutter-deep, passable but moving very slowly.</span>
+                        <span class="post-description">Heavy torrential rain over the last 30 minutes has caused
+                            localized
+                            flooding along Taft Ave, specifically northbound in front of De La Salle University. Light
+                            vehicles are slowing down significantly to navigate the water. Gutter-deep, passable but
+                            moving
+                            very slowly.</span>
                     </div>
 
+                    <!---------- MEDIA ATTACHMENTS ---------->
                     <div class="post-media-carousel">
+                        <!-- scroll container -->
                         <div class="carousel-container">
+
+                            <!-- slide 1: Image -->
                             <div class="carousel-slide">
                                 <img src="assets/report_media/media1-1.jfif" alt="">
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="post-buttons">
+                        <div class="post-buttons-left">
+                            <button class="post-upvote"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
+                                <i class="fa-solid fa-square-caret-up"></i>
+                                <span>52</span>
+                            </button>
+                            <button class="post-comment"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
+                                <i class="fa-solid fa-comment-dots"></i>
+                                <span>2</span>
+                            </button>
+                            <button class="post-resolved"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
+                                <i class="fa-solid fa-circle-check"></i>
+                                Resolved | <span>12</span>
+                            </button>
+                            
+                        </div>
+
+                        <div class="post-buttons-right">
+                            <button class="verified">
+                                <i class="fa-solid fa-user-check"></i>
+                                Verified by Officials
+                            </button>
+                            <button class="status">
+                                Status: RESOLVED</button>
                         </div>
                     </div>
                 </section>
             </a>
             <hr>
 
-            <a href="pages/user/user-report.php?id=2" class="post-link">
+            <!--============================== POST 2 ==============================-->
+            <a href="<?php echo $isAuthenticated ? 'pages/user/user-report-details.php?id=2' : $loginUrl; ?>" class="post-link"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
                 <section class="post">
                     <div class="profile-details">
                         <div class="post-pfp"><img src="assets/user_images/user2.jpg" alt=""></div>
-                        <span class="username">MichaelJackson</span>
+                        <span class="username">MichaelJackson</span> <!-- BACKEND PHP LOGIC HERE -->
                         <span>•</span>
                         <span class="hours-ago">36 mins ago</span>
                     </div>
 
+                    <!------------ POST DETAILS ------------>
                     <div class="post-details">
+                        <!-- location -->
                         <div class="post-details-box">
                             <i class="fa-solid fa-location-dot" style="color: var(--colorRed);"></i>
                             <span>Alabang, Muntinlupa</span>
                         </div>
 
+                        <!-- category -->
                         <div class="post-details-box post-details-box-category">
                             <i class="fa-solid fa-layer-group" style="color: var(--colorYellow);"></i>
                             <span>Traffic Congestion</span>
                         </div>
 
+                        <!-- date and time -->
                         <div class="post-details-box">
                             <i class="fa-solid fa-clock" style="color: var(--colorGreen);"></i>
                             <span>July 08, 2026</span> | <span>09:30 AM</span>
                         </div>
                     </div>
 
+                    <!---------- TITLE & DESCRIPTION ---------->
                     <div class="post-title-and-description">
+                        <!-- title -->
                         <h2><span class="post-title">Traffic congested Near Alabang SLEX Southbound</span></h2>
-                        <span class="post-description">Heavy traffic buildup on SLEX Southbound near the Alabang exit. Appears to be caused by a stalled vehicle blocking the rightmost lane. Traffic is backing up approximately 3km. Avoid this route and use alternative roads. MMDA on the scene.</span>
+                        <!-- description -->
+                        <span class="post-description">Heavy traffic buildup on SLEX Southbound near the Alabang exit.
+                            Appears to be caused by a stalled vehicle blocking the rightmost lane. Traffic is backing up
+                            approximately 3km. Avoid this route and use alternative roads. MMDA on the scene.</span>
                     </div>
 
+                    <!---------- MEDIA ATTACHMENTS ---------->
                     <div class="post-media-carousel">
+                        <!-- scroll container -->
                         <div class="carousel-container">
+
+                            <!-- slide 1: Image -->
                             <div class="carousel-slide">
                                 <img src="assets/report_media/media2-1.jpg" alt="">
                             </div>
+
+                            <!-- slide 2: GIF (Handled identically to images) -->
                             <div class="carousel-slide">
                                 <img src="assets/report_media/media2-2.jfif" alt="">
                             </div>
+
+                            <!-- slide 3: Video Media -->
                             <div class="carousel-slide">
                                 <img src="assets/report_media/media2-3.jpg" alt="">
                             </div>
+
+                            <!-- slide 4: Video -->
                             <div class="carousel-slide">
                                 <video src="assets/report_media/media2-4.mp4" controls muted playsinline></video>
                             </div>
+
                         </div>
 
+                        <!-- Navigation Arrows -->
                         <button class="carousel-btn prev" aria-label="Previous slide" onclick="moveCarousel(this, -1)">
                             <i class="fa-solid fa-chevron-left"></i>
                         </button>
                         <button class="carousel-btn next" aria-label="Next slide" onclick="moveCarousel(this, 1)">
                             <i class="fa-solid fa-chevron-right"></i>
                         </button>
+
+                    </div>
+
+                    <!---------- post buttons ---------->
+                    <div class="post-buttons">
+                        <div class="post-buttons-left">
+                            <button class="post-upvote"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
+                                <i class="fa-solid fa-square-caret-up"></i>
+                                <span>34</span>
+                            </button>
+                            <button class="post-comment"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
+                                <i class="fa-solid fa-comment-dots"></i>
+                                <span>2</span>
+                            </button>
+                            <button class="post-resolved"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
+                                <i class="fa-solid fa-circle-check"></i>
+                                Resolved | <span>3</span>
+                            </button>
+                            
+                        </div>
+
+                        <div class="post-buttons-right">
+                            <button class="verified">
+                                <i class="fa-solid fa-user-check"></i>
+                                Verified by Officials
+                            </button>
+                            <button class="status">
+                                Status: ACTIVE</button>
+                        </div>
                     </div>
                 </section>
             </a>
+
             <hr>
 
-            <a href="pages/user/user-report.php?id=3" class="post-link">
+            <!--============================== POST 3 ==============================-->
+            <a href="<?php echo $isAuthenticated ? 'pages/user/user-report-details.php?id=3' : $loginUrl; ?>" class="post-link"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
                 <section class="post">
                     <div class="profile-details">
                         <div class="post-pfp"><img src="assets/user_images/user3.jpg" alt=""></div>
@@ -219,16 +397,29 @@
 
                         <div class="post-details-box">
                             <i class="fa-solid fa-clock" style="color: var(--colorGreen);"></i>
-                            <span>July 20, 2026</span> | <span>07:45 AM</span>
+                            <span>July 20, 2026</span> |
+                            <span>07:45 AM</span>
                         </div>
                     </div>
 
                     <div class="post-title-and-description">
-                        <h2><span class="post-title">Multi-vehicle collision near Meralco Avenue intersection</span></h2>
-                        <span class="post-description">A three-car fender bender has blocked two center lanes eastbound on Ortigas Ave right before Meralco Ave. Major bottleneck forming all the way back to EDSA-Ortigas flyover. Enforcers are currently redirecting flow, but expect at least a 20-30 minute delay.</span>
+                        <h2>
+                            <span class="post-title">
+                                Multi-vehicle collision near Meralco Avenue intersection
+                            </span>
+                        </h2>
+
+                        <span class="post-description">
+                            A three-car fender bender has blocked two center lanes eastbound on
+                            Ortigas Ave right before Meralco Ave. Major bottleneck forming all the
+                            way back to EDSA-Ortigas flyover. Enforcers are currently redirecting
+                            flow, but expect at least a 20-30 minute delay.
+                        </span>
                     </div>
 
+                    <!-- MEDIA ATTACHMENTS -->
                     <div class="post-media-carousel">
+
                         <div class="carousel-container">
                             <div class="carousel-slide">
                                 <img src="assets/report_media/media3-1.jfif" alt="">
@@ -238,15 +429,50 @@
                         <button class="carousel-btn prev" aria-label="Previous slide" onclick="moveCarousel(this, -1)">
                             <i class="fa-solid fa-chevron-left"></i>
                         </button>
+
                         <button class="carousel-btn next" aria-label="Next slide" onclick="moveCarousel(this, 1)">
                             <i class="fa-solid fa-chevron-right"></i>
                         </button>
+
+                    </div>
+
+                    <!-- POST BUTTONS -->
+                    <div class="post-buttons">
+                        <div class="post-buttons-left">
+                            <button class="post-upvote"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
+                                <i class="fa-solid fa-square-caret-up"></i>
+                                <span>87</span>
+                            </button>
+
+                            <button class="post-comment"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
+                                <i class="fa-solid fa-comment-dots"></i>
+                                <span>3</span>
+                            </button>
+
+                            <button class="post-resolved"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
+                                <i class="fa-solid fa-circle-check"></i>
+                                Resolved | <span>0</span>
+                            </button>
+                        </div>
+
+                        <div class="post-buttons-right">
+                            <button class="verified">
+                                <i class="fa-solid fa-user-check"></i>
+                                Verified by Officials
+                            </button>
+
+                            <button class="status">
+                                Status: ACTIVE
+                            </button>
+                        </div>
                     </div>
                 </section>
             </a>
+
             <hr>
 
-            <a href="pages/user/user-report.php?id=4" class="post-link">
+            <!--============================== POST 4 ==============================-->
+            <a href="<?php echo $isAuthenticated ? 'pages/user/user-report-details.php?id=4' : $loginUrl; ?>" class="post-link"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
                 <section class="post">
                     <div class="profile-details">
                         <div class="post-pfp"><img src="assets/user_images/user4.jpg" alt=""></div>
@@ -268,17 +494,31 @@
 
                         <div class="post-details-box">
                             <i class="fa-solid fa-clock" style="color: var(--colorGreen);"></i>
-                            <span>July 20, 2026</span> | <span>10:15 PM</span>
+                            <span>July 20, 2026</span> |
+                            <span>10:15 PM</span>
                         </div>
                     </div>
 
                     <div class="post-title-and-description">
-                        <h2><span class="post-title">Emergency re-blocking near Ateneo Gate 3 Northbound</span></h2>
-                        <span class="post-description">DPWH has unexpectedly blocked off the leftmost lane for urgent asphalt repairs just past the flyover. Heavy machinery is occupying the lane. Tailback is already reaching Aurora Boulevard underpass. Expect slow-moving traffic until early morning.</span>
+                        <h2>
+                            <span class="post-title">
+                                Emergency re-blocking near Ateneo Gate 3 Northbound
+                            </span>
+                        </h2>
+
+                        <span class="post-description">
+                            DPWH has unexpectedly blocked off the leftmost lane for urgent asphalt
+                            repairs just past the flyover. Heavy machinery is occupying the lane.
+                            Tailback is already reaching Aurora Boulevard underpass. Expect
+                            slow-moving traffic until early morning.
+                        </span>
                     </div>
 
+                    <!-- MEDIA ATTACHMENTS -->
                     <div class="post-media-carousel">
+
                         <div class="carousel-container">
+
                             <div class="carousel-slide">
                                 <img src="assets/report_media/media4-1.png" alt="">
                             </div>
@@ -287,9 +527,43 @@
                         <button class="carousel-btn prev" aria-label="Previous slide" onclick="moveCarousel(this, -1)">
                             <i class="fa-solid fa-chevron-left"></i>
                         </button>
+
                         <button class="carousel-btn next" aria-label="Next slide" onclick="moveCarousel(this, 1)">
                             <i class="fa-solid fa-chevron-right"></i>
                         </button>
+
+                    </div>
+
+                    <div class="post-buttons">
+                        <div class="post-buttons-left">
+                            <button class="post-upvote"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
+                                <i class="fa-solid fa-square-caret-up"></i>
+                                <span>18</span>
+                            </button>
+
+                            <button class="post-comment"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
+                                <i class="fa-solid fa-comment-dots"></i>
+                                <span>2</span>
+                            </button>
+
+                            <button class="post-resolved"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
+                                <i class="fa-solid fa-circle-check"></i>
+                                Resolved | <span>1</span>
+                            </button>
+
+                            
+                        </div>
+
+                        <div class="post-buttons-right">
+                            <button class="verified">
+                                <i class="fa-solid fa-user-check"></i>
+                                Verified by Officials
+                            </button>
+
+                            <button class="status">
+                                Status: IN PROGRESS
+                            </button>
+                        </div>
                     </div>
                 </section>
             </a>

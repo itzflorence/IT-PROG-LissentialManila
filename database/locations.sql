@@ -13,7 +13,7 @@ INSERT INTO locations (city, district) VALUES
 ('Manila', 'San Nicolas'),
 ('Manila', 'Port Area'),
 ('Manila', 'Ermita'),
-('Manila', 'San Miguel')w,
+('Manila', 'San Miguel'),
 ('Manila', 'Santa Mesa'),
 ('Manila', 'Intramuros');
 

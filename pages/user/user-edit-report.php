@@ -1,3 +1,10 @@
+<?php
+declare(strict_types=1);
+
+require_once __DIR__ . '/../../includes/auth.php';
+
+require_login('../auth/login.php');
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -22,7 +29,7 @@
 <nav>
     <header class="navbar">
         <div class="navbar-logo">
-            <a href="user-home.php">
+            <a href="../../index.php">
                 <img src="../../assets/LOGO/logo_normal.png" alt="LissentialManila Logo">
             </a>
         </div>
@@ -51,7 +58,7 @@
         <div class="sidebar-options-wrapper">
             <span class="sidebar-title">FEED</span>
             <div class="sidebar-options">
-                <a href="user-home.php">All Reports</a>
+                <a href="../../index.php">All Reports</a>
                 <a href="#">Reports Near Me</a>
                 <a href="#">Official Advisories</a>
             </div>

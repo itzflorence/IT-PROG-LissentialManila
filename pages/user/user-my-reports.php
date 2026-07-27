@@ -1,3 +1,10 @@
+<?php
+declare(strict_types=1);
+
+require_once __DIR__ . '/../../includes/auth.php';
+
+require_login('../auth/login.php');
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -24,7 +31,7 @@
 <nav>
     <header class="navbar">
         <div class="navbar-logo">
-            <a href="user-home.php">
+            <a href="../../index.php">
                 <img src="../../assets/LOGO/logo_normal.png" alt="LissentialManila Logo">
             </a>
         </div>
@@ -53,7 +60,7 @@
         <div class="sidebar-options-wrapper">
             <span class="sidebar-title">FEED</span>
             <div class="sidebar-options">
-                <a href="user-home.php">All Reports</a>
+                <a href="../../index.php">All Reports</a>
                 <a href="#">Reports Near Me</a>
                 <a href="#">Official Advisories</a>
             </div>
@@ -115,7 +122,7 @@
             <hr style="width: 140px; margin: 0 auto; border: none; height: 1px; background-color: var(--color3);">
         </div>
 
-        <a href="user-report.php?id=1" class="post-link">
+        <a href="user-report-details.php?id=1" class="post-link">
             <section class="post">
                 <div class="profile-details">
                     <div class="post-pfp"><img src="../../assets/user_images/user1.jpg" alt="Profile"></div>

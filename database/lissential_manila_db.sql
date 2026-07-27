@@ -286,11 +286,11 @@ AFTER INSERT ON threads
 FOR EACH ROW
 BEGIN
     INSERT IGNORE INTO notifications (user_id, thread_id)
-    SELECT user_id FROM users
+    SELECT user_id, NEW.thread_id FROM users
     WHERE home_location_id = NEW.location_id AND is_deleted = FALSE;
 
     INSERT IGNORE INTO notifications (user_id, thread_id)
-    SELECT user_id FROM saved_locations
+    SELECT user_id, NEW.thread_id FROM saved_locations
     WHERE location_id = NEW.location_id;
 END$$
 

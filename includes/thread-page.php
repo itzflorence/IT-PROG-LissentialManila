@@ -2,7 +2,10 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/thread-query.php';
+
+require_login('../auth/login.php');
 
 /** @var string $pageStatus */
 /** @var string $pageTitle */
@@ -35,7 +38,7 @@ $currentFile = basename((string) ($_SERVER['PHP_SELF'] ?? 'user-threads.php'));
 <nav>
     <header class="navbar">
         <div class="navbar-logo">
-            <a href="user-home.php"><img src="../../assets/LOGO/logo_normal.png" alt="Lissential Manila logo"></a>
+            <a href="../../index.php"><img src="../../assets/LOGO/logo_normal.png" alt="Lissential Manila logo"></a>
         </div>
         <form class="searchbar" method="get" action="<?= thread_escape($currentFile) ?>">
             <input type="search" name="q" value="<?= thread_escape($search) ?>" placeholder="Search threads by title, category, or location" aria-label="Search threads">
@@ -52,7 +55,7 @@ $currentFile = basename((string) ($_SERVER['PHP_SELF'] ?? 'user-threads.php'));
 
         <div class="sidebar-options-wrapper">
             <span class="sidebar-title">FEED</span>
-            <div class="sidebar-options"><a href="user-home.php">All Reports</a></div>
+            <div class="sidebar-options"><a href="../../index.php">All Reports</a></div>
             <hr>
         </div>
 

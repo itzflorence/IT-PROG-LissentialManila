@@ -1,3 +1,8 @@
+<?php
+header('Location: ../../index.php');
+exit;
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -134,7 +139,7 @@
             </div>
 
             <!--============================== POST 1 ==============================-->
-            <a href="user-report.php" class="post-link">
+            <a href="user-report-details.php" class="post-link">
                 <section class="post">
                     <div class="profile-details">
                         <div class="post-pfp"><img src="../../assets/user_images/user1.jpg" alt=""></div>
@@ -200,9 +205,7 @@
                                 <i class="fa-solid fa-circle-check"></i>
                                 Resolved | <span>12</span>
                             </button>
-                            <button class="post-saved">
-                                <i class="fa-solid fa-bookmark"></i>
-                            </button>
+                            
                         </div>
 
                         <div class="post-buttons-right">
@@ -219,7 +222,7 @@
             <hr>
 
             <!--============================== POST 2 ==============================-->
-            <a href="user-report.php?id=2" class="post-link">
+            <a href="user-report-details.php?id=2" class="post-link">
                 <section class="post">
                     <div class="profile-details">
                         <div class="post-pfp"><img src="../../assets/user_images/user2.jpg" alt=""></div>
@@ -312,9 +315,7 @@
                                 <i class="fa-solid fa-circle-check"></i>
                                 Resolved | <span>3</span>
                             </button>
-                            <button class="post-saved">
-                                <i class="fa-solid fa-bookmark"></i>
-                            </button>
+                            
                         </div>
 
                         <div class="post-buttons-right">
@@ -332,7 +333,7 @@
             <hr>
 
             <!--============================== POST 3 ==============================-->
-            <a href="user-report.php?id=3" class="post-link">
+            <a href="user-report-details.php?id=3" class="post-link">
                 <section class="post">
                     <div class="profile-details">
                         <div class="post-pfp"><img src="../../assets/user_images/user3.jpg" alt=""></div>
@@ -410,10 +411,6 @@
                                 <i class="fa-solid fa-circle-check"></i>
                                 Resolved | <span>0</span>
                             </button>
-
-                            <button class="post-saved">
-                                <i class="fa-solid fa-bookmark"></i>
-                            </button>
                         </div>
 
                         <div class="post-buttons-right">
@@ -433,7 +430,7 @@
             <hr>
 
             <!--============================== POST 4 ==============================-->
-            <a href="user-report.php?id=4" class="post-link">
+            <a href="user-report-details.php?id=4" class="post-link">
                 <section class="post">
                     <div class="profile-details">
                         <div class="post-pfp"><img src="../../assets/user_images/user4.jpg" alt=""></div>
@@ -512,9 +509,7 @@
                                 Resolved | <span>1</span>
                             </button>
 
-                            <button class="post-saved">
-                                <i class="fa-solid fa-bookmark"></i>
-                            </button>
+                            
                         </div>
 
                         <div class="post-buttons-right">
