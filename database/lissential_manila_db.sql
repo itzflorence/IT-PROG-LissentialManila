@@ -1,4 +1,9 @@
--- CREATE DATABASE lissential_manila_db;
+CREATE DATABASE IF NOT EXISTS lissential_manila_db
+    CHARACTER SET utf8mb4
+    COLLATE utf8mb4_general_ci;
+
+USE lissential_manila_db;
+
 
 -- LOCATIONS TABLE : Centralized locations (city + district combinations)
 -- NOTES: DISTRICT can also be BARANGAY. Data is fixed by 'locations.sql'
@@ -12,21 +17,6 @@ CREATE TABLE locations (
     
     -- Prevent duplicate city-district pairs
     UNIQUE KEY unique_location (city, district)
-);
-
--- SAVED_LOCATIONS TABLE : Users can save additional locations for notifications
-CREATE TABLE saved_locations (
-    saved_location_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    location_id INT NOT NULL,
-    
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
-    -- Prevent duplicate saves: one user can only save a location once
-    UNIQUE KEY unique_saved_location (user_id, location_id),
-    
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-    FOREIGN KEY (location_id) REFERENCES locations(location_id) ON DELETE CASCADE
 );
 
 -- CATEGORIES TABLE : Centralized list of incident types
@@ -81,6 +71,21 @@ CREATE TABLE users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     
     FOREIGN KEY (home_location_id) REFERENCES locations(location_id)
+);
+
+-- SAVED_LOCATIONS TABLE : Users can save additional locations for notifications
+CREATE TABLE saved_locations (
+    saved_location_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    location_id INT NOT NULL,
+    
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Prevent duplicate saves: one user can only save a location once
+    UNIQUE KEY unique_saved_location (user_id, location_id),
+    
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (location_id) REFERENCES locations(location_id) ON DELETE CASCADE
 );
 
 -- THREADS TABLE : Groups related reports about the same incident at the same location
@@ -199,27 +204,6 @@ CREATE TABLE notifications (
     FOREIGN KEY (thread_id) REFERENCES threads(thread_id) ON DELETE CASCADE
 );
 
--- -----------------------------------------------------------------------------
-DELIMITER $$
-
--- Notifies users whose HOME location or any SAVED location matches the new thread's location
-CREATE TRIGGER notify_users_same_location 
-AFTER INSERT ON threads
-FOR EACH ROW
-BEGIN
-    INSERT IGNORE INTO notifications (user_id, thread_id)
-    SELECT user_id FROM users
-    WHERE home_location_id = NEW.location_id AND is_deleted = FALSE;
-
-    INSERT IGNORE INTO notifications (user_id, thread_id)
-    SELECT user_id FROM saved_locations
-    WHERE location_id = NEW.location_id;
-END$$
-
-DELIMITER ;
--- ------------------------------------------------------------------------------
-
-
 -- ADVISORIES TABLE : Official traffic advisories posted by LGU/MMDA officials
 CREATE TABLE advisories (
     advisory_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -292,3 +276,23 @@ CREATE TABLE audit_logs (
 
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE RESTRICT
 );
+
+-- -----------------------------------------------------------------------------
+DELIMITER $$
+
+-- Notifies users whose HOME location or any SAVED location matches the new thread's location
+CREATE TRIGGER notify_users_same_location 
+AFTER INSERT ON threads
+FOR EACH ROW
+BEGIN
+    INSERT IGNORE INTO notifications (user_id, thread_id)
+    SELECT user_id FROM users
+    WHERE home_location_id = NEW.location_id AND is_deleted = FALSE;
+
+    INSERT IGNORE INTO notifications (user_id, thread_id)
+    SELECT user_id FROM saved_locations
+    WHERE location_id = NEW.location_id;
+END$$
+
+DELIMITER ;
+-- ------------------------------------------------------------------------------
