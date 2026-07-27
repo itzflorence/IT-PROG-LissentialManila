@@ -17,6 +17,9 @@ function escape_html(?string $value): string
 // Current auth/session state used by the shared navbar/sidebar.
 $isAuthenticated = is_authenticated();
 
+$currentUserId = filter_var($_SESSION['user_id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+$currentUserId = $currentUserId === false ? null : $currentUserId;
+
 $username = $_SESSION['username'] ?? null;
 $safeUsername = escape_html((string) ($username ?? ''));
 
@@ -75,49 +78,97 @@ if ($reportId === null) {
 
         // Handle comment submission on the same page before reading fresh data
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $currentUserId = filter_var($_SESSION['user_id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
-            $postedReportId = filter_input(
-                INPUT_POST,
-                'report_id',
-                FILTER_VALIDATE_INT,
-                ['options' => ['min_range' => 1]]
-            );
-            $postedReportId = $postedReportId === false ? null : $postedReportId;
-            $commentText = trim((string) ($_POST['comment_text'] ?? ''));
-            $commentDraft = $commentText;
+            $postAction = trim((string) ($_POST['action'] ?? 'add_comment'));
 
-            // Guardrails for comment input/session integrity
-            if ($currentUserId === false || $currentUserId === null) {
-                $commentError = 'Your session expired. Please log in again.';
-            } elseif ($postedReportId !== $reportId) {
-                $commentError = 'Invalid report reference.';
-            } elseif ($commentText === '') {
-                $commentError = 'Comment cannot be empty.';
-            } elseif ((function_exists('mb_strlen') ? mb_strlen($commentText) : strlen($commentText)) > 1000) {
-                $commentError = 'Comment is too long. Maximum is 1000 characters.';
-            } else {
-                // Insert only if the report still exists and is not deleted
-                $insertComment = $db->prepare(
-                    'INSERT INTO comments (user_id, report_id, comment_text)
-                     SELECT ?, ?, ?
-                     FROM reports
-                     WHERE report_id = ?
-                       AND is_deleted = FALSE'
+            if ($postAction === 'delete_comment') {
+                $postedReportId = filter_input(
+                    INPUT_POST,
+                    'report_id',
+                    FILTER_VALIDATE_INT,
+                    ['options' => ['min_range' => 1]]
                 );
-                $insertComment->bind_param('iisi', $currentUserId, $reportId, $commentText, $reportId);
-                $insertComment->execute();
+                $postedReportId = $postedReportId === false ? null : $postedReportId;
+                $commentId = filter_input(
+                    INPUT_POST,
+                    'comment_id',
+                    FILTER_VALIDATE_INT,
+                    ['options' => ['min_range' => 1]]
+                );
+                $commentId = $commentId === false ? null : $commentId;
 
-                if ($insertComment->affected_rows < 1) {
-                    $commentError = 'This report is unavailable for comments.';
+                if ($currentUserId === null) {
+                    $commentError = 'Your session expired. Please log in again.';
+                } elseif ($postedReportId !== $reportId || $commentId === null) {
+                    $commentError = 'Invalid comment reference.';
                 } else {
-                    // Keep report.comment_count aligned with actual comment rows
-                    $refreshCommentCount = $db->prepare('UPDATE reports SET comment_count = (SELECT COUNT(*) FROM comments WHERE report_id = ? AND is_deleted = FALSE) WHERE report_id = ?');
-                    $refreshCommentCount->bind_param('ii', $reportId, $reportId);
-                    $refreshCommentCount->execute();
+                    // Soft-delete only the logged-in user's own comment on this report.
+                    $deleteComment = $db->prepare(
+                        'UPDATE comments
+                         SET is_deleted = TRUE
+                         WHERE comment_id = ?
+                           AND report_id = ?
+                           AND user_id = ?
+                           AND is_deleted = FALSE'
+                    );
+                    $deleteComment->bind_param('iii', $commentId, $reportId, $currentUserId);
+                    $deleteComment->execute();
 
-                    // PRG pattern: redirect to avoid duplicate form resubmissions
-                    header('Location: user-report-details.php?id=' . $reportId . '#comments');
-                    exit;
+                    if ($deleteComment->affected_rows < 1) {
+                        $commentError = 'Unable to delete that comment.';
+                    } else {
+                        $refreshCommentCount = $db->prepare('UPDATE reports SET comment_count = (SELECT COUNT(*) FROM comments WHERE report_id = ? AND is_deleted = FALSE) WHERE report_id = ?');
+                        $refreshCommentCount->bind_param('ii', $reportId, $reportId);
+                        $refreshCommentCount->execute();
+
+                        // PRG pattern: redirect to avoid duplicate form resubmissions
+                        header('Location: user-report-details.php?id=' . $reportId . '#comments');
+                        exit;
+                    }
+                }
+            } else {
+                $postedReportId = filter_input(
+                    INPUT_POST,
+                    'report_id',
+                    FILTER_VALIDATE_INT,
+                    ['options' => ['min_range' => 1]]
+                );
+                $postedReportId = $postedReportId === false ? null : $postedReportId;
+                $commentText = trim((string) ($_POST['comment_text'] ?? ''));
+                $commentDraft = $commentText;
+
+                // Guardrails for comment input/session integrity
+                if ($currentUserId === null) {
+                    $commentError = 'Your session expired. Please log in again.';
+                } elseif ($postedReportId !== $reportId) {
+                    $commentError = 'Invalid report reference.';
+                } elseif ($commentText === '') {
+                    $commentError = 'Comment cannot be empty.';
+                } elseif ((function_exists('mb_strlen') ? mb_strlen($commentText) : strlen($commentText)) > 1000) {
+                    $commentError = 'Comment is too long. Maximum is 1000 characters.';
+                } else {
+                    // Insert only if the report still exists and is not deleted
+                    $insertComment = $db->prepare(
+                        'INSERT INTO comments (user_id, report_id, comment_text)
+                         SELECT ?, ?, ?
+                         FROM reports
+                         WHERE report_id = ?
+                           AND is_deleted = FALSE'
+                    );
+                    $insertComment->bind_param('iisi', $currentUserId, $reportId, $commentText, $reportId);
+                    $insertComment->execute();
+
+                    if ($insertComment->affected_rows < 1) {
+                        $commentError = 'This report is unavailable for comments.';
+                    } else {
+                        // Keep report.comment_count aligned with actual comment rows
+                        $refreshCommentCount = $db->prepare('UPDATE reports SET comment_count = (SELECT COUNT(*) FROM comments WHERE report_id = ? AND is_deleted = FALSE) WHERE report_id = ?');
+                        $refreshCommentCount->bind_param('ii', $reportId, $reportId);
+                        $refreshCommentCount->execute();
+
+                        // PRG pattern: redirect to avoid duplicate form resubmissions
+                        header('Location: user-report-details.php?id=' . $reportId . '#comments');
+                        exit;
+                    }
                 }
             }
         }
@@ -173,7 +224,7 @@ if ($reportId === null) {
 
             // Comment thread for the right-side panel
             $commentsStatement = $db->prepare(
-                'SELECT c.comment_id, c.comment_text, c.created_at, u.username, u.first_name, u.last_name
+                'SELECT c.comment_id, c.user_id, c.comment_text, c.created_at, u.username, u.first_name, u.last_name
                  FROM comments c
                  INNER JOIN users u ON u.user_id = c.user_id
                  WHERE c.report_id = ?
@@ -398,6 +449,14 @@ if (is_array($report)) {
                             <span><?php echo escape_html(relative_time_label((string) ($comment['created_at'] ?? ''))); ?></span>
                         </div>
                         <p><?php echo nl2br(escape_html((string) ($comment['comment_text'] ?? ''))); ?></p>
+                        <?php if ($currentUserId !== null && (int) ($comment['user_id'] ?? 0) === $currentUserId): ?>
+                            <form method="post" class="comment-delete-form" onsubmit="return confirm('Delete this comment?');">
+                                <input type="hidden" name="action" value="delete_comment">
+                                <input type="hidden" name="report_id" value="<?php echo (int) $reportId; ?>">
+                                <input type="hidden" name="comment_id" value="<?php echo (int) ($comment['comment_id'] ?? 0); ?>">
+                                <button type="submit" class="comment-delete-button">Delete</button>
+                            </form>
+                        <?php endif; ?>
                     </article>
                 <?php endforeach; ?>
             <?php endif; ?>
