@@ -47,10 +47,11 @@
     position: relative;
     display: flex;
     align-items: center;
+    justify-content: center;
 }
 
 .searchbar input {
-    width: 100%;
+    width: 800px;
     padding: var(--space-small);
     padding-right: 40px;  /* Space for icon */
     /* SEARCHBAR design */
@@ -77,8 +78,8 @@
 }
 
 .searchbar i {
-    position: absolute;
-    right: 12px;
+    position: relative;
+    right: 35px;
     color: var(--color4);
     pointer-events: none;
 }

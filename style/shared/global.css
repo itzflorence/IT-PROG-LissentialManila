@@ -12,6 +12,7 @@
     --colorRed:     #cd474b;
     --colorYellow:  #febc01;
     --colorGreen:   #34622f;
+    --colorComplement: #000000;
 
     /* Responsive Spacing Scale */
     --space-xsmall: clamp(0.25rem, 0.2rem + 0.3vw, 0.5rem);   /* 4 → 8px */

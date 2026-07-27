@@ -78,6 +78,7 @@
     text-align-last: left;
     color: var(--color4);
 }
+
 /* ******************************************************** */
 /* post title and description */
 /* ******************************************************** */
@@ -110,11 +111,11 @@
     scroll-snap-type: x mandatory;
     scroll-behavior: smooth;
     width: 100%;
-    height: auto; 
+    height: auto;
     margin: 0;
     padding: 0;
-    -ms-overflow-style: none;  
-    scrollbar-width: none;     
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
 
 .carousel-container::-webkit-scrollbar {
@@ -148,12 +149,15 @@
     background: rgba(0, 0, 0, 0.5);
     color: white;
     border: none;
-    width: 40px; /* Clear sizing to center icons */
+    width: 40px;
+    /* Clear sizing to center icons */
     height: 40px;
     cursor: pointer;
-    font-size: 16px; /* Scales the icon scale cleanly */
+    font-size: 16px;
+    /* Scales the icon scale cleanly */
     border-radius: 50%;
-    display: flex; /* Centers the <i> tag layout */
+    display: flex;
+    /* Centers the <i> tag layout */
     justify-content: center;
     align-items: center;
     transition: 0.2s ease;
@@ -168,8 +172,13 @@
     transform: translateY(-50%) scale(0.95);
 }
 
-.carousel-btn.prev { left: 12px; }
-.carousel-btn.next { right: 12px; }
+.carousel-btn.prev {
+    left: 12px;
+}
+
+.carousel-btn.next {
+    right: 12px;
+}
 
 /* HIDE ARROWS WHEN THERE IS ONLY ONE MEDIA */
 .carousel-hidden {
@@ -188,7 +197,8 @@
     border-radius: 8px;
 }
 
-.post-buttons-left, .post-buttons-right {
+.post-buttons-left,
+.post-buttons-right {
     display: flex;
     flex-direction: row;
     gap: 5px;
@@ -199,10 +209,25 @@
     border: none;
 }
 
-.post-buttons-left button { background-color: var(--color4); box-shadow: rgba(17, 17, 26, 0.1) 0px 1px 0px; }
+.post-buttons-left button {
+    background-color: var(--color4);
+    box-shadow: rgba(17, 17, 26, 0.1) 0px 1px 0px;
+    transition: 0.1s ease-out;
+}
+
+.post-buttons-left button:hover {
+    background-color: color-mix(in srgb, var(--color4) 50%, var(--colorComplement) );
+    box-shadow: rgba(17, 17, 26, 0.25) 0px 4px 6px;
+    transform: translateY(-0.5px);
+}
+
 .post-buttons-right .verified {
     background-color: var(--colorRed);
     box-shadow: rgba(17, 17, 26, 0.1) 0px 1px 0px;
     font-style: italic;
 }
-.post-buttons-right .status { background-color: var(--colorBlue); box-shadow: rgba(17, 17, 26, 0.1) 0px 1px 0px;}
+
+.post-buttons-right .status {
+    background-color: var(--colorBlue);
+    box-shadow: rgba(17, 17, 26, 0.1) 0px 1px 0px;
+}

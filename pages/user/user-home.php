@@ -26,7 +26,7 @@
             </div>
 
             <div class="searchbar">
-                <input type="search" placeholder="Search what you need...">
+                <input type="search" placeholder="Search for a report...">
                 <i class="fa-solid fa-magnifying-glass"></i>
             </div>
 
@@ -43,7 +43,7 @@
 
         <aside class="sidebar">
             <div class="create-report">
-                <button>CREATE REPORT</button>
+                <button onclick="window.location.href='user-create-report.php'">CREATE REPORT</button>
             </div>
 
             <div class="sidebar-options-wrapper">
@@ -107,6 +107,32 @@
     <!--====== POSTS ======-->
     <div class="main-wrapper">
         <main>
+            <!--============================== POST 1 ==============================-->
+            <div class="filter">
+                <div class="filter-group">
+                    <label for="status-filter">Status:</label>
+                    <select id="status-filter" name="status">
+                        <option value="">All</option>
+                        <option value="pending">Pending</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                        <option value="resolved">Resolved</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="category-filter">Category:</label>
+                    <select id="category-filter" name="category">
+                        <option value="">All</option>
+                        <option value="">Electronics</option>
+                        <option value="">Clothing</option>
+                        <option value="">Documents</option>
+                        <option value="">Accessories</option>
+                        <option value="">Others</option>
+                    </select>
+                </div>
+            </div>
+
             <!--============================== POST 1 ==============================-->
             <a href="user-report.php" class="post-link">
                 <section class="post">

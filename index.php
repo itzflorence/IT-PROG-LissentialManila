@@ -12,6 +12,12 @@
     <link rel="stylesheet" href="style/shared/post.css">
 
     <script src="pages/shared-js/media-carousel.js" defer></script>
+
+    <style>
+        .sidebar-intro {
+            text-align: center;
+        }
+    </style>
 </head>
 
 <body>
@@ -24,7 +30,7 @@
             </div>
 
             <div class="searchbar">
-                <input type="search" placeholder="Search what you need...">
+                <input type="search" placeholder="Search for a report...">
                 <i class="fa-solid fa-magnifying-glass"></i>
             </div>
 
@@ -40,28 +46,19 @@
         </header>
 
         <aside class="sidebar">
+            <div class="sidebar-options-wrapper">
+                <span class="sidebar-title sidebar-intro">Join the Anti-Kamote Gang and create an account for LissentialManila!</span>
+            </div>
+
             <div class="create-report">
-                <button>CREATE REPORT</button>
+                <button>CREATE ACCOUNT</button>
             </div>
 
             <div class="sidebar-options-wrapper">
                 <span class="sidebar-title">FEED</span>
                 <div class="sidebar-options">
-                    <a href="index.php">All Reports</a>
-                    <a href="#">Reports Near Me</a>
+                    <a href="user-home.php">All Reports</a>
                     <a href="#">Official Advisories</a>
-                </div>
-                <hr>
-            </div>
-
-            <div class="sidebar-options-wrapper">
-                <span class="sidebar-title">MY ACTIVITY</span>
-                <div class="sidebar-options">
-                    <a href="#">My Reports</a>
-                    <a href="#">Reports Near Me</a>
-                    <a href="#">Saved Locations</a>
-                    <a href="#">My Comments</a>
-                    <a href="#">Account Profile</a>
                 </div>
                 <hr>
             </div>

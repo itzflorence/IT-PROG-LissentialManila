@@ -26,7 +26,7 @@
         </div>
 
         <div class="searchbar">
-            <input type="search" placeholder="Search what you need...">
+            <input type="search" placeholder="Search for a report...">
             <i class="fa-solid fa-magnifying-glass"></i>
         </div>
 

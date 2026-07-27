@@ -19,7 +19,7 @@
             <h2>Log in</h2>
         </div>
 
-        <form action="login_process.php" method="POST">
+        <form action="../user/user-home.php" method="POST">
             <div class="form-group">
                 <input type="text" id="login-username" name="username" placeholder="Username" required autocomplete="username">
             </div>
@@ -30,7 +30,7 @@
             </div>
 
             <div class="form-options">
-                <a href="#" class="forgot-link">Forget Password?</a>
+                <a href="#" class="forgot-link">Forgot Password?</a>
             </div>
 
             <button type="submit" class="auth-btn">Login</button>

@@ -28,7 +28,7 @@
         </div>
 
         <div class="searchbar">
-            <input type="search" placeholder="Search what you need...">
+            <input type="search" placeholder="Search for a report...">
             <i class="fa-solid fa-magnifying-glass"></i>
         </div>
 
@@ -109,7 +109,7 @@
         <form class="create-report-container" action="#" method="POST" enctype="multipart/form-data">
 
             <div class="form-header">
-                <input type="text" class="input-report-title" placeholder="Report Title" required>
+                <input type="text" class="input-report-title" placeholder="Report Title*" required>
                 <input type="text" class="input-report-desc" placeholder="Description (optional)">
             </div>
 

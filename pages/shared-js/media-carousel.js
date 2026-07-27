@@ -15,10 +15,18 @@ function initializeCarousels() {
     
     carousels.forEach(carousel => {
         const slides = carousel.querySelectorAll('.carousel-slide');
+        const buttons = carousel.querySelectorAll('.carousel-btn');
+
+        // Prevent arrow clicks from bubbling to the parent post link.
+        buttons.forEach(button => {
+            button.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+            });
+        });
         
         // If there is only 1 slide (or zero), hide the arrow controls
         if (slides.length <= 1) {
-            const buttons = carousel.querySelectorAll('.carousel-btn');
             buttons.forEach(btn => btn.classList.add('carousel-hidden'));
         }
     });
