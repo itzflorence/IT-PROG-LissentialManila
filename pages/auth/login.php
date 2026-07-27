@@ -76,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    $error = 'Invalid username or password.';
+    $error = 'Invalid username/email or password.';
 }
 ?>
 

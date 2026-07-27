@@ -70,3 +70,46 @@ hr {
         padding: var(--space-xsmall);
     }
 }
+
+.filter {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-small);
+    justify-content: flex-start;
+    align-items: flex-end;
+    padding: var(--space-small);
+    border-radius: 12px;
+    background: linear-gradient(90deg, color-mix(in srgb, var(--colorBlue) 8%, var(--color2)), var(--color2));
+    border: 1px solid var(--color3);
+    margin-bottom: var(--space-small);
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 180px;
+}
+
+.filter-group label {
+    font-weight: 600;
+    font-size: var(--font-small);
+    color: var(--color4);
+}
+
+.filter-group select {
+    border: 1px solid color-mix(in srgb, var(--colorBlue) 35%, var(--color3));
+    background-color: var(--color1);
+    color: var(--colorText);
+    border-radius: 10px;
+    padding: 8px 10px;
+    font-size: var(--font-small);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.filter-group select:focus {
+    outline: none;
+    border-color: var(--colorBlue);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--colorBlue) 20%, transparent);
+}

@@ -183,6 +183,18 @@
     border-radius: 8px;
 }
 
+.sidebar-options .sidebar-filter-link {
+    border: 1px solid transparent;
+    border-radius: 10px;
+}
+
+.sidebar-options .sidebar-filter-link.is-active {
+    background-color: color-mix(in srgb, var(--colorBlue) 22%, var(--color1));
+    border-color: color-mix(in srgb, var(--colorBlue) 55%, var(--color1));
+    color: color-mix(in srgb, var(--colorBlue) 60%, var(--colorText));
+    font-weight: 600;
+}
+
 /* COPYRIGHT NOTICE FOOTER */
 .copyright-footer {
     padding: var(--space-xsmall);

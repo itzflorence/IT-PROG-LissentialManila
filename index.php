@@ -3,73 +3,10 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/thread-query.php';
+require_once __DIR__ . '/includes/report-feed.php';
 
-function escape_html(?string $value): string
-{
+function escape_html(?string $value): string {
     return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
-}
-
-function normalize_media_url(string $fileUrl): string
-{
-    $path = trim($fileUrl);
-    $normalized = preg_replace('#^(?:\.\./)+#', '', $path);
-
-    return ltrim((string) ($normalized ?? $path), '/');
-}
-
-function relative_time_label(?string $timestamp): string
-{
-    if ($timestamp === null || $timestamp === '') {
-        return 'Unknown time';
-    }
-
-    try {
-        $now = new DateTimeImmutable('now');
-        $created = new DateTimeImmutable($timestamp);
-    } catch (Throwable $error) {
-        return 'Unknown time';
-    }
-
-    $diff = $created->diff($now);
-
-    if ($diff->y > 0) {
-        return $diff->y . ' year' . ($diff->y === 1 ? '' : 's') . ' ago';
-    }
-    if ($diff->m > 0) {
-        return $diff->m . ' month' . ($diff->m === 1 ? '' : 's') . ' ago';
-    }
-    if ($diff->d > 0) {
-        return $diff->d . ' day' . ($diff->d === 1 ? '' : 's') . ' ago';
-    }
-    if ($diff->h > 0) {
-        return $diff->h . ' hour' . ($diff->h === 1 ? '' : 's') . ' ago';
-    }
-    if ($diff->i > 0) {
-        return $diff->i . ' min' . ($diff->i === 1 ? '' : 's') . ' ago';
-    }
-
-    return 'Just now';
-}
-
-/**
- * @return array{date:string,time:string}
- */
-function report_date_time_labels(?string $timestamp): array
-{
-    if ($timestamp === null || $timestamp === '') {
-        return ['date' => 'Unknown date', 'time' => '--:--'];
-    }
-
-    try {
-        $created = new DateTimeImmutable($timestamp);
-    } catch (Throwable $error) {
-        return ['date' => 'Unknown date', 'time' => '--:--'];
-    }
-
-    return [
-        'date' => $created->format('F d, Y'),
-        'time' => $created->format('h:i A'),
-    ];
 }
 
 $isAuthenticated = is_authenticated();
@@ -107,82 +44,10 @@ $reportLoadError = null;
 
 try {
     $db = thread_db();
-
-    $categoryResult = $db->query('SELECT category_id, category_name FROM categories WHERE is_active = TRUE ORDER BY category_name ASC');
-    while ($row = $categoryResult->fetch_assoc()) {
-        $categories[] = $row;
-    }
-
-    $sql = <<<'SQL'
-        SELECT
-            r.report_id,
-            r.thread_id,
-            r.title,
-            r.description,
-            r.status,
-            r.upvote_count,
-            r.comment_count,
-            r.verified_by,
-            r.created_at,
-            u.username,
-            u.first_name,
-            u.last_name,
-            c.category_name,
-            l.city,
-            l.district
-        FROM reports r
-        INNER JOIN users u ON u.user_id = r.user_id
-        INNER JOIN categories c ON c.category_id = r.category_id
-        INNER JOIN locations l ON l.location_id = r.location_id
-        WHERE r.is_deleted = FALSE
-    SQL;
-
-    $types = '';
-    $params = [];
-
-    if ($selectedStatus !== '') {
-        $sql .= ' AND r.status = ?';
-        $types .= 's';
-        $params[] = $selectedStatus;
-    }
-
-    if ($selectedCategoryId !== null) {
-        $sql .= ' AND r.category_id = ?';
-        $types .= 'i';
-        $params[] = $selectedCategoryId;
-    }
-
-    $sql .= ' ORDER BY r.created_at DESC, r.report_id DESC';
-
-    $statement = $db->prepare($sql);
-    if ($types !== '') {
-        $statement->bind_param($types, ...$params);
-    }
-    $statement->execute();
-
-    $reports = $statement->get_result()->fetch_all(MYSQLI_ASSOC);
-
-    if ($reports !== []) {
-        $reportIds = array_map(
-            static fn(array $report): int => (int) $report['report_id'],
-            $reports
-        );
-
-        $placeholders = implode(',', array_fill(0, count($reportIds), '?'));
-        $mediaSql = "SELECT report_id, file_url, file_type FROM media_attachments WHERE report_id IN ($placeholders) ORDER BY report_id ASC, media_id ASC";
-        $mediaStatement = $db->prepare($mediaSql);
-        $mediaStatement->bind_param(str_repeat('i', count($reportIds)), ...$reportIds);
-        $mediaStatement->execute();
-
-        $mediaResult = $mediaStatement->get_result();
-        while ($mediaRow = $mediaResult->fetch_assoc()) {
-            $reportId = (int) $mediaRow['report_id'];
-            $mediaByReport[$reportId][] = [
-                'file_url' => (string) ($mediaRow['file_url'] ?? ''),
-                'file_type' => strtolower((string) ($mediaRow['file_type'] ?? 'photo')),
-            ];
-        }
-    }
+    $categories = fetch_categories($db);
+    $reportData = fetch_reports_and_media($db, $selectedStatus, $selectedCategoryId);
+    $reports = $reportData['reports'];
+    $mediaByReport = $reportData['mediaByReport'];
 } catch (Throwable $error) {
     $reportLoadError = $error->getMessage();
 }
@@ -298,15 +163,21 @@ try {
             <div class="sidebar-options-wrapper">
                 <span class="sidebar-title">CATEGORIES</span>
                 <div class="sidebar-options">
-                    <a href="#">Vehicle Accident</a>
-                    <a href="#">Traffic Congestion</a>
-                    <a href="#">Flooding</a>
-                    <a href="#">Road Blockage</a>
-                    <a href="#">Construction</a>
-                    <a href="#">Stalled Vehicle</a>
-                    <a href="#">Traffic Light</a>
-                    <a href="#">Public Transport</a>
-                    <a href="#">Other</a>
+                    <a
+                        href="<?php echo escape_html(build_filter_url('index.php', $selectedStatus !== '' ? $selectedStatus : null, null)); ?>"
+                        class="sidebar-filter-link<?php echo $selectedCategoryId === null ? ' is-active' : ''; ?>"
+                    >
+                        All Categories
+                    </a>
+                    <?php foreach ($categories as $category): ?>
+                        <?php $categoryId = (int) ($category['category_id'] ?? 0); ?>
+                        <a
+                            href="<?php echo escape_html(build_filter_url('index.php', $selectedStatus !== '' ? $selectedStatus : null, $categoryId)); ?>"
+                            class="sidebar-filter-link<?php echo $selectedCategoryId === $categoryId ? ' is-active' : ''; ?>"
+                        >
+                            <?php echo escape_html((string) ($category['category_name'] ?? '')); ?>
+                        </a>
+                    <?php endforeach; ?>
                 </div>
                 <hr>
             </div>
@@ -363,7 +234,7 @@ try {
                 </section>
             <?php elseif ($reports === []): ?>
                 <section class="post" style="padding: 16px;">
-                    <h2 style="margin-bottom: 8px;">No reports found</h2>
+                    <h2 style="margin-bottom: 8px;">No reports available.</h2>
                     <p style="margin-bottom: 0;">Try a different filter or create a new report.</p>
                 </section>
             <?php else: ?>
@@ -390,6 +261,10 @@ try {
 
                     $status = (string) ($report['status'] ?? 'Pending');
                     $statusUpper = strtoupper($status);
+                    $statusClassSuffix = strtolower((string) preg_replace('/[^a-z0-9]+/i', '-', $status));
+                    if ($statusClassSuffix === '') {
+                        $statusClassSuffix = 'pending';
+                    }
                     $isVerified = ((int) ($report['verified_by'] ?? 0) > 0) || in_array($status, ['Verified', 'Resolved'], true);
                     $timeLabel = relative_time_label((string) ($report['created_at'] ?? ''));
                     $dateTimeLabels = report_date_time_labels((string) ($report['created_at'] ?? ''));
@@ -413,7 +288,7 @@ try {
 
                                 <div class="post-details-box post-details-box-category">
                                     <i class="fa-solid fa-layer-group" style="color: var(--colorYellow);"></i>
-                                    <span><?php echo escape_html((string) ($report['category_name'] ?? 'Uncategorized')); ?></span>
+                                    <span class="post-category-badge"><?php echo escape_html((string) ($report['category_name'] ?? 'Uncategorized')); ?></span>
                                 </div>
 
                                 <div class="post-details-box">
@@ -480,7 +355,7 @@ try {
                                             Verified by Officials
                                         </button>
                                     <?php endif; ?>
-                                    <button class="status">
+                                    <button class="status status-pill status-<?php echo escape_html($statusClassSuffix); ?>">
                                         Status: <?php echo escape_html($statusUpper); ?>
                                     </button>
                                 </div>

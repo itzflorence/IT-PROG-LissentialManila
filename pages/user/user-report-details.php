@@ -2,8 +2,234 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../../includes/auth.php';
+require_once __DIR__ . '/../../includes/thread-query.php';
+require_once __DIR__ . '/../../includes/report-feed.php';
 
+// Block this page unless the visitor is authenticated.
 require_login('../auth/login.php');
+
+// HTML-escape helper for safe output inside templates.
+function escape_html(?string $value): string
+{
+    return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
+}
+
+// Current auth/session state used by the shared navbar/sidebar.
+$isAuthenticated = is_authenticated();
+
+$username = $_SESSION['username'] ?? null;
+$safeUsername = escape_html((string) ($username ?? ''));
+
+// Centralized navigation targets so links stay consistent across user pages
+$loginUrl = '../auth/login.php';
+$logoutUrl = '../auth/logout.php';
+$registerUrl = '../auth/register.php';
+$createReportUrl = $isAuthenticated ? 'user-create-report.php' : $registerUrl;
+$myReportsUrl = $isAuthenticated ? 'user-my-reports.php' : $loginUrl;
+$allThreadsUrl = $isAuthenticated ? 'user-threads.php' : $loginUrl;
+$activeThreadsUrl = $isAuthenticated ? 'user-active-threads.php' : $loginUrl;
+$resolvedThreadsUrl = $isAuthenticated ? 'user-resolved-threads.php' : $loginUrl;
+
+// Sidebar category links can preserve a valid report status filter
+$allowedStatuses = ['Pending', 'Verified', 'Resolved', 'Rejected'];
+$selectedStatus = trim((string) ($_GET['status'] ?? ''));
+if (!in_array($selectedStatus, $allowedStatuses, true)) {
+    $selectedStatus = '';
+}
+
+// Optional category filter used to highlight the active category link
+$selectedCategoryId = filter_input(
+    INPUT_GET,
+    'category',
+    FILTER_VALIDATE_INT,
+    ['options' => ['min_range' => 1]]
+);
+$selectedCategoryId = $selectedCategoryId === false ? null : $selectedCategoryId;
+
+// Loaded once for sidebar category rendering
+$categories = [];
+
+// Report ID determines which report details and comments to load
+$reportId = filter_input(
+    INPUT_GET,
+    'id',
+    FILTER_VALIDATE_INT,
+    ['options' => ['min_range' => 1]]
+);
+$reportId = $reportId === false ? null : $reportId;
+
+$report = null;
+$mediaItems = [];
+$comments = [];
+$errorMessage = null;
+$commentError = null;
+$commentDraft = '';
+
+if ($reportId === null) {
+    http_response_code(400);
+    $errorMessage = 'A valid report ID is required.';
+} else {
+    try {
+        $db = thread_db();
+        $categories = fetch_categories($db);
+
+        // Handle comment submission on the same page before reading fresh data
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $currentUserId = filter_var($_SESSION['user_id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+            $postedReportId = filter_input(
+                INPUT_POST,
+                'report_id',
+                FILTER_VALIDATE_INT,
+                ['options' => ['min_range' => 1]]
+            );
+            $postedReportId = $postedReportId === false ? null : $postedReportId;
+            $commentText = trim((string) ($_POST['comment_text'] ?? ''));
+            $commentDraft = $commentText;
+
+            // Guardrails for comment input/session integrity
+            if ($currentUserId === false || $currentUserId === null) {
+                $commentError = 'Your session expired. Please log in again.';
+            } elseif ($postedReportId !== $reportId) {
+                $commentError = 'Invalid report reference.';
+            } elseif ($commentText === '') {
+                $commentError = 'Comment cannot be empty.';
+            } elseif ((function_exists('mb_strlen') ? mb_strlen($commentText) : strlen($commentText)) > 1000) {
+                $commentError = 'Comment is too long. Maximum is 1000 characters.';
+            } else {
+                // Insert only if the report still exists and is not deleted
+                $insertComment = $db->prepare(
+                    'INSERT INTO comments (user_id, report_id, comment_text)
+                     SELECT ?, ?, ?
+                     FROM reports
+                     WHERE report_id = ?
+                       AND is_deleted = FALSE'
+                );
+                $insertComment->bind_param('iisi', $currentUserId, $reportId, $commentText, $reportId);
+                $insertComment->execute();
+
+                if ($insertComment->affected_rows < 1) {
+                    $commentError = 'This report is unavailable for comments.';
+                } else {
+                    // Keep report.comment_count aligned with actual comment rows
+                    $refreshCommentCount = $db->prepare('UPDATE reports SET comment_count = (SELECT COUNT(*) FROM comments WHERE report_id = ? AND is_deleted = FALSE) WHERE report_id = ?');
+                    $refreshCommentCount->bind_param('ii', $reportId, $reportId);
+                    $refreshCommentCount->execute();
+
+                    // PRG pattern: redirect to avoid duplicate form resubmissions
+                    header('Location: user-report-details.php?id=' . $reportId . '#comments');
+                    exit;
+                }
+            }
+        }
+
+        // Main report payload for the details card
+        $reportSql = <<<'SQL'
+            SELECT
+                r.report_id,
+                r.thread_id,
+                r.title,
+                r.description,
+                r.status,
+                r.upvote_count,
+                r.comment_count,
+                r.verified_by,
+                r.created_at,
+                u.username,
+                u.first_name,
+                u.last_name,
+                c.category_name,
+                l.city,
+                l.district
+            FROM reports r
+            INNER JOIN users u ON u.user_id = r.user_id
+            INNER JOIN categories c ON c.category_id = r.category_id
+            INNER JOIN locations l ON l.location_id = r.location_id
+            WHERE r.report_id = ?
+              AND r.is_deleted = FALSE
+            LIMIT 1
+        SQL;
+
+        $reportStatement = $db->prepare($reportSql);
+        $reportStatement->bind_param('i', $reportId);
+        $reportStatement->execute();
+        $report = $reportStatement->get_result()->fetch_assoc();
+
+        if (!$report) {
+            http_response_code(404);
+            $errorMessage = 'The report you requested does not exist.';
+        } else {
+            // Report media (images/videos) for the carousel
+            $mediaStatement = $db->prepare('SELECT file_url, file_type FROM media_attachments WHERE report_id = ? ORDER BY media_id ASC');
+            $mediaStatement->bind_param('i', $reportId);
+            $mediaStatement->execute();
+
+            $mediaResult = $mediaStatement->get_result();
+            while ($row = $mediaResult->fetch_assoc()) {
+                $mediaItems[] = [
+                    'file_url' => normalize_media_url((string) ($row['file_url'] ?? '')),
+                    'file_type' => strtolower((string) ($row['file_type'] ?? 'photo')),
+                ];
+            }
+
+            // Comment thread for the right-side panel
+            $commentsStatement = $db->prepare(
+                'SELECT c.comment_id, c.comment_text, c.created_at, u.username, u.first_name, u.last_name
+                 FROM comments c
+                 INNER JOIN users u ON u.user_id = c.user_id
+                 WHERE c.report_id = ?
+                   AND c.is_deleted = FALSE
+                 ORDER BY c.created_at ASC, c.comment_id ASC'
+            );
+            $commentsStatement->bind_param('i', $reportId);
+            $commentsStatement->execute();
+            $comments = $commentsStatement->get_result()->fetch_all(MYSQLI_ASSOC);
+        }
+    } catch (Throwable $error) {
+        http_response_code(500);
+        $errorMessage = 'Unable to load this report right now.';
+    }
+}
+
+// Derived view-model values so template markup stays simple
+$displayUsername = '';
+$locationLabel = 'Unknown location';
+$status = 'Pending';
+$statusUpper = 'PENDING';
+$statusClassSuffix = 'pending';
+$isVerified = false;
+$timeLabel = 'Unknown time';
+$dateTimeLabels = ['date' => 'Unknown date', 'time' => '--:--'];
+
+if (is_array($report)) {
+    $displayUsername = trim((string) ($report['username'] ?? ''));
+    if ($displayUsername === '') {
+        $displayUsername = trim(((string) ($report['first_name'] ?? '')) . ' ' . ((string) ($report['last_name'] ?? '')));
+    }
+    if ($displayUsername === '') {
+        $displayUsername = 'Anonymous';
+    }
+
+    $locationParts = [];
+    if (!empty($report['district'])) {
+        $locationParts[] = (string) $report['district'];
+    }
+    if (!empty($report['city'])) {
+        $locationParts[] = (string) $report['city'];
+    }
+    if ($locationParts !== []) {
+        $locationLabel = implode(', ', $locationParts);
+    }
+
+    $status = (string) ($report['status'] ?? 'Pending');
+    $statusUpper = strtoupper($status);
+    $statusClassSuffix = strtolower((string) preg_replace('/[^a-z0-9]+/i', '-', $status));
+    if ($statusClassSuffix === '') {
+        $statusClassSuffix = 'pending';
+    }
+    $isVerified = ((int) ($report['verified_by'] ?? 0) > 0) || in_array($status, ['Verified', 'Resolved'], true);
+    $timeLabel = relative_time_label((string) ($report['created_at'] ?? ''));
+    $dateTimeLabels = report_date_time_labels((string) ($report['created_at'] ?? ''));
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -11,8 +237,11 @@ require_login('../auth/login.php');
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Reports</title>
+    <title><?php echo escape_html((string) ($report['title'] ?? 'Report Details')); ?> - LissentialManila</title>
+    <link rel="stylesheet" href="../../style/shared/global.css">
+    <link rel="stylesheet" href="../../style/shared/navbar.css">
     <link rel="stylesheet" href="../../style/user/home.css">
+    <link rel="stylesheet" href="../../style/user/report-details.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
         integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -35,37 +264,71 @@ require_login('../auth/login.php');
                 <i class="fa-solid fa-magnifying-glass"></i>
             </div>
 
+            <?php if ($isAuthenticated): ?>
+            <div class="auth-state-pill auth-state-pill--user">
+                Logged in as <?php echo $safeUsername; ?>
+            </div>
+            <?php endif; ?>
+
+            <?php if ($isAuthenticated): ?>
             <div class="icon-button-wrapper">
                 <button type="button" class="icon-button">
                     <i class="fa-solid fa-bell"></i>
                 </button>
 
-                <button type="button" class="icon-button">
+                <button type="button" class="icon-button" title="Log out" onclick="window.location.href='<?php echo $logoutUrl; ?>'">
                     <i class="fa-solid fa-user"></i>
                 </button>
             </div>
+            <?php else: ?>
+            <div class="login-button">
+                <button type="button" onclick="window.location.href='<?php echo $loginUrl; ?>'">LOG IN</button>
+            </div>
+            <?php endif; ?>
         </header>
 
         <aside class="sidebar">
+            <?php if (!$isAuthenticated): ?>
+            <div class="sidebar-options-wrapper">
+                <span class="sidebar-title sidebar-intro">Join the Anti-Kamote Gang and create an account for LissentialManila!</span>
+            </div>
+            <?php endif; ?>
+
             <div class="create-report">
-                <button>CREATE REPORT</button>
+                <button type="button" onclick="window.location.href='<?php echo $createReportUrl; ?>'">
+                    <?php echo $isAuthenticated ? 'CREATE REPORT' : 'CREATE ACCOUNT'; ?>
+                </button>
             </div>
 
             <div class="sidebar-options-wrapper">
-                <span class="sidebar-title">MY ACTIVITY</span>
+                <span class="sidebar-title">FEED</span>
                 <div class="sidebar-options">
-                    <a href="#">My Reports</a>
-                    <a href="#">Reports Near Me</a>
+                    <a href="../../index.php">All Reports</a>
+                    <a href="#">Official Advisories</a>
                 </div>
                 <hr>
             </div>
 
+            <?php if ($isAuthenticated): ?>
+            <div class="sidebar-options-wrapper">
+                <span class="sidebar-title">MY ACTIVITY</span>
+                <div class="sidebar-options">
+                    <a href="<?php echo $myReportsUrl; ?>">My Reports</a>
+                    <a href="#">Reports Near Me</a>
+                    <a href="#">Saved Locations</a>
+                    <a href="#">My Comments</a>
+                    <a href="#">Account Profile</a>
+                </div>
+                <hr>
+            </div>
+            <?php endif; ?>
+
             <div class="sidebar-options-wrapper">
                 <span class="sidebar-title">THREADS</span>
                 <div class="sidebar-options">
-                    <a href="#">Active</a>
-                    <a href="#">Resolved</a>
-                    <a href="#">Archived</a>
+                    <a href="<?php echo $allThreadsUrl; ?>">All</a>
+                    <a href="<?php echo $activeThreadsUrl; ?>">Active</a>
+                    <a href="<?php echo $resolvedThreadsUrl; ?>">Resolved</a>
                 </div>
                 <hr>
             </div>
@@ -73,15 +336,21 @@ require_login('../auth/login.php');
             <div class="sidebar-options-wrapper">
                 <span class="sidebar-title">CATEGORIES</span>
                 <div class="sidebar-options">
-                    <a href="#">Vehicle Accident</a>
-                    <a href="#">Traffic Congestion</a>
-                    <a href="#">Flooding</a>
-                    <a href="#">Road Blockage</a>
-                    <a href="#">Construction</a>
-                    <a href="#">Stalled Vehicle</a>
-                    <a href="#">Traffic Light</a>
-                    <a href="#">Public Transport</a>
-                    <a href="#">Other</a>
+                    <a
+                        href="<?php echo escape_html(build_filter_url('../../index.php', $selectedStatus !== '' ? $selectedStatus : null, null)); ?>"
+                        class="sidebar-filter-link<?php echo $selectedCategoryId === null ? ' is-active' : ''; ?>"
+                    >
+                        All Categories
+                    </a>
+                    <?php foreach ($categories as $category): ?>
+                        <?php $categoryId = (int) ($category['category_id'] ?? 0); ?>
+                        <a
+                            href="<?php echo escape_html(build_filter_url('../../index.php', $selectedStatus !== '' ? $selectedStatus : null, $categoryId)); ?>"
+                            class="sidebar-filter-link<?php echo $selectedCategoryId === $categoryId ? ' is-active' : ''; ?>"
+                        >
+                            <?php echo escape_html((string) ($category['category_name'] ?? '')); ?>
+                        </a>
+                    <?php endforeach; ?>
                 </div>
             </div>
 
@@ -89,78 +358,149 @@ require_login('../auth/login.php');
         </aside>
     </nav>
 
+    <aside class="threads-wrapper comments-panel" id="comments">
+        <div class="comments-panel__header">
+            <h2>Comments</h2>
+            <span><?php echo count($comments); ?></span>
+        </div>
+
+        <?php if ($errorMessage === null && $reportId !== null): ?>
+            <form method="post" class="comment-form">
+                <input type="hidden" name="report_id" value="<?php echo (int) $reportId; ?>">
+                <label for="comment_text">Add a comment</label>
+                <textarea id="comment_text" name="comment_text" rows="3" maxlength="1000" placeholder="Share updates or helpful context..."><?php echo escape_html($commentDraft); ?></textarea>
+                <?php if ($commentError !== null): ?>
+                    <p class="comment-form__error"><?php echo escape_html($commentError); ?></p>
+                <?php endif; ?>
+                <button type="submit">Post Comment</button>
+            </form>
+        <?php endif; ?>
+
+        <div class="comments-list">
+            <?php if ($errorMessage !== null): ?>
+                <p class="comments-empty"><?php echo escape_html($errorMessage); ?></p>
+            <?php elseif ($comments === []): ?>
+                <p class="comments-empty">No comments yet. Be the first to add one.</p>
+            <?php else: ?>
+                <?php foreach ($comments as $comment): ?>
+                    <?php
+                    $commentUser = trim((string) ($comment['username'] ?? ''));
+                    if ($commentUser === '') {
+                        $commentUser = trim(((string) ($comment['first_name'] ?? '')) . ' ' . ((string) ($comment['last_name'] ?? '')));
+                    }
+                    if ($commentUser === '') {
+                        $commentUser = 'Anonymous';
+                    }
+                    ?>
+                    <article class="comment-card">
+                        <div class="comment-card__meta">
+                            <strong><?php echo escape_html($commentUser); ?></strong>
+                            <span><?php echo escape_html(relative_time_label((string) ($comment['created_at'] ?? ''))); ?></span>
+                        </div>
+                        <p><?php echo nl2br(escape_html((string) ($comment['comment_text'] ?? ''))); ?></p>
+                    </article>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
+    </aside>
+
     <div class="main-wrapper">
         <main>
-            <section class="post">
-                <div class="profile-details">
-                    <div class="post-pfp"><img src="../../assets/user_images/user1.jpg" alt=""></div>
-                    <span class="username">GreenArcher_01</span>
-                    <span>•</span>
-                    <span class="hours-ago">Just now</span>
-                </div>
-
-                <div class="post-details">
-                    <div class="post-details-box">
-                        <i class="fa-solid fa-location-dot" style="color: var(--colorRed);"></i>
-                        <span>Taft Avenue, Manila</span>
+            <?php if ($errorMessage !== null): ?>
+                <section class="post" style="padding: 16px;">
+                    <h2 style="margin-bottom: 8px;">Report unavailable</h2>
+                    <p style="margin-bottom: 0;"><?php echo escape_html($errorMessage); ?></p>
+                </section>
+            <?php else: ?>
+                <section class="post">
+                    <div class="profile-details">
+                        <div class="post-pfp"><img src="../../assets/user_images/user1.jpg" alt=""></div>
+                        <span class="username"><?php echo escape_html($displayUsername); ?></span>
+                        <span>•</span>
+                        <span class="hours-ago"><?php echo escape_html($timeLabel); ?></span>
                     </div>
 
-                    <div class="post-details-box post-details-box-category">
-                        <i class="fa-solid fa-layer-group" style="color: var(--colorYellow);"></i>
-                        <span>Flooding</span>
-                    </div>
+                    <div class="post-details">
+                        <div class="post-details-box">
+                            <i class="fa-solid fa-location-dot" style="color: var(--colorRed);"></i>
+                            <span><?php echo escape_html($locationLabel); ?></span>
+                        </div>
 
-                    <div class="post-details-box">
-                        <i class="fa-solid fa-clock" style="color: var(--colorGreen);"></i>
-                        <span>July 21, 2026</span> | <span>02:14 PM</span>
-                    </div>
-                </div>
+                        <div class="post-details-box post-details-box-category">
+                            <i class="fa-solid fa-layer-group" style="color: var(--colorYellow);"></i>
+                            <span class="post-category-badge"><?php echo escape_html((string) ($report['category_name'] ?? 'Uncategorized')); ?></span>
+                        </div>
 
-                <div class="post-title-and-description">
-                    <h2><span class="post-title">Gutter-deep flooding outside DLSU after sudden downpour</span></h2>
-                    <span class="post-description">Heavy torrential rain over the last 30 minutes has caused localized
-                        flooding along Taft Ave, specifically northbound in front of De La Salle University. Light
-                        vehicles are slowing down significantly to navigate the water. Gutter-deep, passable but moving
-                        very slowly.</span>
-                </div>
-
-                <div class="post-media-carousel">
-                    <div class="carousel-container">
-                        <div class="carousel-slide">
-                            <img src="../../assets/report_media/media1-1.jfif" alt="">
+                        <div class="post-details-box">
+                            <i class="fa-solid fa-clock" style="color: var(--colorGreen);"></i>
+                            <span><?php echo escape_html($dateTimeLabels['date']); ?></span> | <span><?php echo escape_html($dateTimeLabels['time']); ?></span>
                         </div>
                     </div>
-                </div>
 
-                <div class="post-buttons">
-                    <div class="post-buttons-left">
-                        <button class="post-upvote">
-                            <i class="fa-solid fa-square-caret-up"></i>
-                            <span>52</span>
-                        </button>
-                        <button class="post-comment">
-                            <i class="fa-solid fa-comment-dots"></i>
-                            <span>2</span>
-                        </button>
-                        <button class="post-resolved">
-                            <i class="fa-solid fa-circle-check"></i>
-                            Resolved | <span>12</span>
-                        </button>
-                        <button class="post-saved">
-                            <i class="fa-solid fa-bookmark"></i>
-                        </button>
+                    <div class="post-title-and-description">
+                        <h2><span class="post-title"><?php echo escape_html((string) ($report['title'] ?? 'Untitled report')); ?></span></h2>
+                        <span class="post-description"><?php echo escape_html((string) ($report['description'] ?? '')); ?></span>
                     </div>
 
-                    <div class="post-buttons-right">
-                        <button class="verified">
-                            <i class="fa-solid fa-user-check"></i>
-                            Verified by Officials
-                        </button>
-                        <button class="status">Status: RESOLVED</button>
+                    <div class="post-media-carousel">
+                        <div class="carousel-container">
+                            <?php if ($mediaItems === []): ?>
+                                <div class="carousel-slide">
+                                    <img src="../../assets/report_media/media1-1.jfif" alt="No media attached">
+                                </div>
+                            <?php else: ?>
+                                <?php foreach ($mediaItems as $media): ?>
+                                    <div class="carousel-slide">
+                                        <?php if (($media['file_type'] ?? 'photo') === 'video'): ?>
+                                            <video src="../../<?php echo escape_html((string) $media['file_url']); ?>" controls muted playsinline></video>
+                                        <?php else: ?>
+                                            <img src="../../<?php echo escape_html((string) $media['file_url']); ?>" alt="Report attachment">
+                                        <?php endif; ?>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </div>
+
+                        <?php if (count($mediaItems) > 1): ?>
+                            <button class="carousel-btn prev" aria-label="Previous slide" onclick="moveCarousel(this, -1)">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </button>
+                            <button class="carousel-btn next" aria-label="Next slide" onclick="moveCarousel(this, 1)">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </button>
+                        <?php endif; ?>
                     </div>
-                </div>
-            </section>
-            <hr>
+
+                    <div class="post-buttons">
+                        <div class="post-buttons-left">
+                            <button type="button" class="post-upvote">
+                                <i class="fa-solid fa-square-caret-up"></i>
+                                <span><?php echo (int) ($report['upvote_count'] ?? 0); ?></span>
+                            </button>
+                            <button type="button" class="post-comment" onclick="window.location.href='#comments'">
+                                <i class="fa-solid fa-comment-dots"></i>
+                                <span><?php echo (int) ($report['comment_count'] ?? 0); ?></span>
+                            </button>
+                            <button type="button" class="post-resolved">
+                                <i class="fa-solid fa-circle-check"></i>
+                                <?php echo escape_html($status); ?>
+                            </button>
+                        </div>
+
+                        <div class="post-buttons-right">
+                            <?php if ($isVerified): ?>
+                                <button class="verified">
+                                    <i class="fa-solid fa-user-check"></i>
+                                    Verified by Officials
+                                </button>
+                            <?php endif; ?>
+                            <button class="status status-pill status-<?php echo escape_html($statusClassSuffix); ?>">
+                                Status: <?php echo escape_html($statusUpper); ?>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+            <?php endif; ?>
         </main>
     </div>
 </body>
