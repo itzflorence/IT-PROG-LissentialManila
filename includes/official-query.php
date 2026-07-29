@@ -17,7 +17,7 @@ function official_escape(?string $value): string
 /**
  * Reports queue for official review dashboard. pending reports are on top
  */
-function official_fetch_queue(mysqli $db, string $statusFilter = '', string $search = ''): array
+function official_fetch_queue(mysqli $db, string $statusFilter = '', string $search = '', ?int $locationId = null): array
 {
     $statusFilter = in_array($statusFilter, OFFICIAL_REPORT_STATUSES, true) ? $statusFilter : '';
     $search = trim($search);
@@ -63,7 +63,13 @@ function official_fetch_queue(mysqli $db, string $statusFilter = '', string $sea
         array_push($params, $term, $term, $term, $term);
     }
 
-    // pending first, then oldest-first within each status
+    if ($locationId !== null) {
+        $sql .= ' AND r.location_id = ?';
+        $types .= 'i';
+        $params[] = $locationId;
+    }
+
+    // Pending first, then oldest-first within each status
     $sql .= " ORDER BY FIELD(r.status, 'Pending', 'Rejected', 'Verified', 'Resolved'), r.created_at ASC";
 
     $stmt = $db->prepare($sql);
@@ -283,4 +289,99 @@ function official_log_action(mysqli $db, int $userId, string $action, string $en
     );
     $stmt->bind_param('ississ', $userId, $action, $entityType, $entityId, $description, $ip);
     $stmt->execute();
+}
+
+/**
+ * logged-in official's assigned monitoring area (users.assigned_location_id) for the Assigned Area page. returns null if the official has no assigned location
+ */
+function official_fetch_assigned_location(mysqli $db, int $userId): ?array
+{
+    $stmt = $db->prepare(
+        'SELECT l.location_id, l.city, l.district, l.landmark
+         FROM users u
+         INNER JOIN locations l ON l.location_id = u.assigned_location_id
+         WHERE u.user_id = ?
+         LIMIT 1'
+    );
+    $stmt->bind_param('i', $userId);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+
+    return $row ?: null;
+}
+
+/**
+ * threads at a single location for the Assigned Area page
+ */
+function official_fetch_threads_by_location(mysqli $db, int $locationId): array
+{
+    $sql = <<<'SQL'
+        SELECT
+            t.thread_id,
+            t.title,
+            t.description,
+            t.status,
+            t.total_reports,
+            t.verified_reports,
+            t.unverified_reports,
+            t.created_at,
+            t.updated_at,
+            c.category_name,
+            l.city,
+            l.district,
+            l.landmark,
+            CONCAT(u.first_name, ' ', u.last_name) AS creator_name
+        FROM threads t
+        INNER JOIN categories c ON c.category_id = t.category_id
+        INNER JOIN locations l ON l.location_id = t.location_id
+        INNER JOIN users u ON u.user_id = t.created_by
+        WHERE t.location_id = ?
+        ORDER BY FIELD(t.status, 'Active', 'Resolved', 'Archived'), t.updated_at DESC
+    SQL;
+
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param('i', $locationId);
+    $stmt->execute();
+
+    return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+}
+
+/** Maps a thread's new status to the matching audit_logs.action enum value. */
+function official_audit_action_for_thread_status(string $oldStatus, string $newStatus): string
+{
+    if ($oldStatus === $newStatus) {
+        return 'Update Thread';
+    }
+
+    return $newStatus === 'Archived' ? 'Archive Thread' : 'Update Thread';
+}
+
+/**
+ * Proposal: "When a thread status changes to Resolved or Archived, all linked reports automatically inherit that status."
+ *
+ * The reports.status column, however, only allows Pending/Verified/Resolved/
+ * Rejected (no "Archived" value), so an Archived thread cannot literally set
+ * its reports to "Archived" without breaking the schema. This cascades the
+ * Resolved case as specified, and leaves report statuses untouched when a
+ * thread is Archived instead (flagged in the Edit Thread page's UI copy).
+ */
+function official_cascade_thread_status_to_reports(mysqli $db, int $threadId, string $newThreadStatus, int $actingUserId): int
+{
+    if ($newThreadStatus !== 'Resolved') {
+        return 0;
+    }
+
+    $stmt = $db->prepare(
+        "UPDATE reports
+         SET status = 'Resolved',
+             verified_by = COALESCE(verified_by, ?),
+             verified_at = COALESCE(verified_at, NOW())
+         WHERE thread_id = ?
+           AND is_deleted = FALSE
+           AND status <> 'Resolved'"
+    );
+    $stmt->bind_param('ii', $actingUserId, $threadId);
+    $stmt->execute();
+
+    return $stmt->affected_rows;
 }
