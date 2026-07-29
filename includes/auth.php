@@ -35,3 +35,40 @@ function require_login(string $loginPath = '../auth/login.php'): void
         exit;
     }
 }
+
+//returns current session role, null when not logged in
+function current_role(): ?string
+{
+    ensure_session_started();
+ 
+    if (!is_authenticated()) {
+        return null;
+    }
+ 
+    $role = (string) $_SESSION['role'];
+    $canonical = ['student' => 'Student', 'official' => 'Official', 'admin' => 'Admin'];
+ 
+    return $canonical[strtolower($role)] ?? null;
+}
+
+// guards official/admin only pages. if no permission, redirect to login or public feed
+function require_role(array $allowedRoles, string $loginPath = '../auth/login.php', string $forbiddenPath = '../../index.php'): void
+{
+    ensure_session_started();
+ 
+    if (!is_authenticated()) {
+        header('Location: ' . $loginPath);
+        exit;
+    }
+ 
+    $role = current_role();
+
+    if ($role === 'Admin') {
+        return;
+    }
+ 
+    if ($role === null || !in_array($role, $allowedRoles, true)) {
+        header('Location: ' . $forbiddenPath);
+        exit;
+    }
+}
