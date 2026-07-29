@@ -106,15 +106,15 @@ foreach ($reports as $reportRow) {
 
     <aside class="sidebar">
         <div class="create-report">
-            <button type="button" onclick="window.location.href='#'">CREATE THREAD</button>
+            <button type="button" onclick="window.location.href='official-create-thread.php'">CREATE THREAD</button>
         </div>
 
         <div class="sidebar-options-wrapper">
             <span class="sidebar-title">OFFICIAL ACTIONS</span>
             <div class="sidebar-options">
                 <a href="official-home.php" style="font-weight: bold;">Review Queue</a>
-                <a href="#">Assigned Area</a>
-                <a href="#">Create Thread</a>
+                <a href="official-assigned-area.php">Assigned Area</a>
+                <a href="official-create-thread.php">Create Thread</a>
             </div>
             <hr>
         </div>
@@ -125,7 +125,7 @@ foreach ($reports as $reportRow) {
                 <a href="../user/user-threads.php">All</a>
                 <a href="../user/user-active-threads.php">Active</a>
                 <a href="../user/user-resolved-threads.php">Resolved</a>
-                <a href="#">Archived</a>
+                <a href="official-archived-threads.php">Archived</a>
             </div>
             <hr>
         </div>
