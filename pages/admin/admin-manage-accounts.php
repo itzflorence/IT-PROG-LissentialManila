@@ -1,3 +1,42 @@
+<?php
+declare(strict_types=1);
+
+require_once __DIR__ . '/../../includes/auth.php';
+require_once __DIR__ . '/../../includes/thread-query.php';
+require_once __DIR__ . '/../../includes/official-query.php';
+require_once __DIR__ . '/../../includes/admin-query.php';
+
+require_role(['Admin'], '../auth/login.php', '../../index.php');
+
+$username = $_SESSION['username'] ?? null;
+$safeUsername = thread_escape((string) ($username ?? ''));
+$logoutUrl = '../auth/logout.php';
+
+$currentUserId = filter_var($_SESSION['user_id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+$currentUserId = $currentUserId === false ? null : $currentUserId;
+
+$successFlag = trim((string) ($_GET['success'] ?? ''));
+$errorFlag = trim((string) ($_GET['error'] ?? ''));
+
+$successMessages = [
+    'created' => 'Account created successfully.',
+    'updated' => 'Account updated successfully.',
+    'deleted' => 'Account deactivated.',
+    'restored' => 'Account restored.',
+];
+
+$accounts = [];
+$locationsGrouped = [];
+$loadError = null;
+
+try {
+    $db = thread_db();
+    $accounts = admin_fetch_accounts($db);
+    $locationsGrouped = official_fetch_locations_grouped($db);
+} catch (Throwable $error) {
+    $loadError = 'Unable to load accounts right now. Please make sure MySQL is running and the database has been imported.';
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -9,6 +48,7 @@
     <link rel="stylesheet" href="../../style/shared/global.css">
     <link rel="stylesheet" href="../../style/shared/navbar.css">
     <link rel="stylesheet" href="../../style/user/home.css">
+    <link rel="stylesheet" href="../../style/official/official.css">
     <link rel="stylesheet" href="../../style/admin/manage-accounts.css">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
@@ -26,16 +66,19 @@
         </div>
 
         <div class="searchbar">
-            <input type="search" placeholder="Search for a report...">
+            <input type="search" placeholder="Search what you need...">
             <i class="fa-solid fa-magnifying-glass"></i>
+        </div>
+
+        <div class="auth-state-pill auth-state-pill--user">
+            Logged in as <?= $safeUsername ?> (Admin)
         </div>
 
         <div class="icon-button-wrapper">
             <button type="button" class="icon-button">
                 <i class="fa-solid fa-bell"></i>
             </button>
-
-            <button type="button" class="icon-button">
+            <button type="button" class="icon-button" title="Log out" onclick="window.location.href='<?= thread_escape($logoutUrl) ?>'">
                 <i class="fa-solid fa-user"></i>
             </button>
         </div>
@@ -56,7 +99,7 @@
             <span class="sidebar-title">CONTENT</span>
             <div class="sidebar-options">
                 <a href="#">Official Advisories</a>
-                <a href="#">All Threads</a>
+                <a href="../user/user-threads.php">All Threads</a>
                 <a href="#">Archived Threads</a>
             </div>
             <hr>
@@ -65,7 +108,7 @@
         <div class="sidebar-options-wrapper">
             <span class="sidebar-title">GENERAL</span>
             <div class="sidebar-options">
-                <a href="../user/user-home.php">Back to Feed</a>
+                <a href="../../index.php">Back to Feed</a>
                 <a href="#">Account Profile</a>
             </div>
         </div>
@@ -88,170 +131,124 @@
                 </button>
             </div>
 
-            <div class="accounts-toolbar">
-                <div class="accounts-search">
-                    <input type="text" id="accounts-search-input" placeholder="Search by name, username, or phone number...">
-                    <i class="fa-solid fa-magnifying-glass"></i>
+            <?php if ($successFlag !== '' && isset($successMessages[$successFlag])): ?>
+                <div class="flash-banner flash-banner--success">
+                    <i class="fa-solid fa-circle-check"></i> <?= thread_escape($successMessages[$successFlag]) ?>
                 </div>
-                <div class="accounts-filter">
-                    <select id="accounts-role-filter">
-                        <option value="All">All Roles</option>
-                        <option value="Student">Student</option>
-                        <option value="Official">Official</option>
-                        <option value="Admin">Admin</option>
-                    </select>
+            <?php endif; ?>
+
+            <?php if ($errorFlag !== ''): ?>
+                <div class="flash-banner flash-banner--error">
+                    <i class="fa-solid fa-triangle-exclamation"></i> <?= thread_escape($errorFlag) ?>
                 </div>
-            </div>
+            <?php endif; ?>
 
-            <div class="accounts-table-wrapper">
-                <table class="accounts-table">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Phone Number</th>
-                            <th>Email</th>
-                            <th>Role</th>
-                            <th>Assigned Area</th>
-                            <th>Home Location</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="accounts-table-body">
-
-                        <tr data-user-id="1" data-first-name="Green" data-last-name="Archer"
-                            data-username="GreenArcher_01" data-email="greenarcher01@gmail.com"
-                            data-phone="09171234567" data-role="Student" data-assigned-area=""
-                            data-home-location-id="8" data-is-deleted="false">
-                            <td class="account-name-cell">
-                                <span class="account-fullname">Green Archer</span>
-                                <span class="account-username">@GreenArcher_01</span>
-                            </td>
-                            <td>0917 123 4567</td>
-                            <td>greenarcher01@gmail.com</td>
-                            <td><span class="badge badge-role-student">Student</span></td>
-                            <td>—</td>
-                            <td>Taft Avenue, Manila</td>
-                            <td><span class="badge badge-status badge-status-active">Active</span></td>
-                            <td class="account-actions">
-                                <button type="button" class="btn-edit-account" onclick="openEditAccountModal(this)">
-                                    <i class="fa-solid fa-pen-to-square"></i> Edit
-                                </button>
-                                <button type="button" class="btn-delete-account" onclick="openDeleteConfirm(this)">
-                                    <i class="fa-solid fa-trash"></i> Delete
-                                </button>
-                            </td>
-                        </tr>
-
-                        <tr data-user-id="2" data-first-name="Michael" data-last-name="delos Santos"
-                            data-username="MichaelJackson" data-email="mdelossantos@gmail.com"
-                            data-phone="09189876543" data-role="Student" data-assigned-area=""
-                            data-home-location-id="45" data-is-deleted="false">
-                            <td class="account-name-cell">
-                                <span class="account-fullname">Michael delos Santos</span>
-                                <span class="account-username">@MichaelJackson</span>
-                            </td>
-                            <td>0918 987 6543</td>
-                            <td>mdelossantos@gmail.com</td>
-                            <td><span class="badge badge-role-student">Student</span></td>
-                            <td>—</td>
-                            <td>Alabang, Muntinlupa</td>
-                            <td><span class="badge badge-status badge-status-active">Active</span></td>
-                            <td class="account-actions">
-                                <button type="button" class="btn-edit-account" onclick="openEditAccountModal(this)">
-                                    <i class="fa-solid fa-pen-to-square"></i> Edit
-                                </button>
-                                <button type="button" class="btn-delete-account" onclick="openDeleteConfirm(this)">
-                                    <i class="fa-solid fa-trash"></i> Delete
-                                </button>
-                            </td>
-                        </tr>
-
-                        <tr data-user-id="3" data-first-name="Rosario" data-last-name="Mendoza"
-                            data-username="LGU_Marikina_09" data-email="rmendoza@marikina.gov.ph"
-                            data-phone="09201112233" data-role="Official" data-assigned-area="Marikina"
-                            data-home-location-id="60" data-is-deleted="false">
-                            <td class="account-name-cell">
-                                <span class="account-fullname">Rosario Mendoza</span>
-                                <span class="account-username">@LGU_Marikina_09</span>
-                            </td>
-                            <td>0920 111 2233</td>
-                            <td>rmendoza@marikina.gov.ph</td>
-                            <td><span class="badge badge-role-official">Official</span></td>
-                            <td>Marikina</td>
-                            <td>Marikina Heights, Marikina</td>
-                            <td><span class="badge badge-status badge-status-active">Active</span></td>
-                            <td class="account-actions">
-                                <button type="button" class="btn-edit-account" onclick="openEditAccountModal(this)">
-                                    <i class="fa-solid fa-pen-to-square"></i> Edit
-                                </button>
-                                <button type="button" class="btn-delete-account" onclick="openDeleteConfirm(this)">
-                                    <i class="fa-solid fa-trash"></i> Delete
-                                </button>
-                            </td>
-                        </tr>
-
-                        <tr data-user-id="4" data-first-name="Enrico Terrence" data-last-name="Ponciano"
-                            data-username="MMDA_Enforcer_14" data-email="eponciano@mmda.gov.ph"
-                            data-phone="09221234455" data-role="Official" data-assigned-area="Pasig"
-                            data-home-location-id="70" data-is-deleted="true">
-                            <td class="account-name-cell">
-                                <span class="account-fullname">Enrico Terrence Ponciano</span>
-                                <span class="account-username">@MMDA_Enforcer_14</span>
-                            </td>
-                            <td>0922 123 4455</td>
-                            <td>eponciano@mmda.gov.ph</td>
-                            <td><span class="badge badge-role-official">Official</span></td>
-                            <td>Pasig</td>
-                            <td>Ortigas, Pasig</td>
-                            <td><span class="badge badge-status badge-status-deleted">Deleted</span></td>
-                            <td class="account-actions">
-                                <button type="button" class="btn-edit-account" onclick="openEditAccountModal(this)">
-                                    <i class="fa-solid fa-pen-to-square"></i> Edit
-                                </button>
-                                <button type="button" class="btn-restore-account" onclick="openRestoreConfirm(this)">
-                                    <i class="fa-solid fa-rotate-left"></i> Restore
-                                </button>
-                            </td>
-                        </tr>
-
-                        <tr data-user-id="5" data-first-name="Max" data-last-name="Gatmaitan"
-                            data-username="SysAdmin_Max" data-email="mgatmaitan@lissentialmanila.ph"
-                            data-phone="09301239988" data-role="Admin" data-assigned-area=""
-                            data-home-location-id="26" data-is-deleted="false">
-                            <td class="account-name-cell">
-                                <span class="account-fullname">Max Gatmaitan</span>
-                                <span class="account-username">@SysAdmin_Max</span>
-                            </td>
-                            <td>0930 123 9988</td>
-                            <td>mgatmaitan@lissentialmanila.ph</td>
-                            <td><span class="badge badge-role-admin">Admin</span></td>
-                            <td>—</td>
-                            <td>Diliman, Quezon City</td>
-                            <td><span class="badge badge-status badge-status-active">Active</span></td>
-                            <td class="account-actions">
-                                <button type="button" class="btn-edit-account" onclick="openEditAccountModal(this)">
-                                    <i class="fa-solid fa-pen-to-square"></i> Edit
-                                </button>
-                                <button type="button" class="btn-delete-account" onclick="openDeleteConfirm(this)">
-                                    <i class="fa-solid fa-trash"></i> Delete
-                                </button>
-                            </td>
-                        </tr>
-
-                    </tbody>
-                </table>
-
-                <div id="accounts-empty-state" class="accounts-empty-state" style="display: none;">
-                    <i class="fa-solid fa-user-slash" style="font-size: 2rem; margin-bottom: 8px;"></i>
-                    <p>No accounts match your search.</p>
+            <?php if ($loadError !== null): ?>
+                <div class="flash-banner flash-banner--error">
+                    <i class="fa-solid fa-triangle-exclamation"></i> <?= thread_escape($loadError) ?>
                 </div>
-            </div>
+            <?php else: ?>
 
+                <div class="accounts-toolbar">
+                    <div class="accounts-search">
+                        <input type="text" id="accounts-search-input" placeholder="Search by name, username, or phone number...">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </div>
+                    <div class="accounts-filter">
+                        <select id="accounts-role-filter">
+                            <option value="All">All Roles</option>
+                            <option value="Student">Student</option>
+                            <option value="Official">Official</option>
+                            <option value="Admin">Admin</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="accounts-table-wrapper">
+                    <table class="accounts-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Phone Number</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Assigned Location</th>
+                                <th>Home Location</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="accounts-table-body">
+                            <?php foreach ($accounts as $account): ?>
+                                <?php
+                                $userId = (int) $account['user_id'];
+                                $firstName = (string) $account['first_name'];
+                                $lastName = (string) $account['last_name'];
+                                $usernameCell = (string) $account['username'];
+                                $email = (string) ($account['email'] ?? '');
+                                $phone = (string) $account['phone_number'];
+                                $role = (string) $account['role'];
+                                $isDeleted = (bool) $account['is_deleted'];
+                                $assignedLabel = admin_location_label($account['assigned_district'] ?? null, $account['assigned_city'] ?? null);
+                                $homeLabel = admin_location_label($account['home_district'] ?? null, $account['home_city'] ?? null);
+                                $roleBadgeClass = 'badge-role-' . strtolower($role);
+                                ?>
+                                <tr class="<?= $isDeleted ? 'row-deleted' : '' ?>"
+                                    data-user-id="<?= $userId ?>"
+                                    data-first-name="<?= thread_escape($firstName) ?>"
+                                    data-last-name="<?= thread_escape($lastName) ?>"
+                                    data-username="<?= thread_escape($usernameCell) ?>"
+                                    data-email="<?= thread_escape($email) ?>"
+                                    data-phone="<?= thread_escape($phone) ?>"
+                                    data-role="<?= thread_escape($role) ?>"
+                                    data-assigned-location-id="<?= (int) ($account['assigned_location_id'] ?? 0) ?>"
+                                    data-home-location-id="<?= (int) $account['home_location_id'] ?>"
+                                    data-is-deleted="<?= $isDeleted ? 'true' : 'false' ?>">
+                                    <td class="account-name-cell">
+                                        <span class="account-fullname"><?= thread_escape($firstName . ' ' . $lastName) ?></span>
+                                        <span class="account-username">@<?= thread_escape($usernameCell) ?></span>
+                                    </td>
+                                    <td><?= thread_escape($phone) ?></td>
+                                    <td><?= thread_escape($email !== '' ? $email : '—') ?></td>
+                                    <td><span class="badge <?= $roleBadgeClass ?>"><?= thread_escape($role) ?></span></td>
+                                    <td><?= thread_escape($assignedLabel) ?></td>
+                                    <td><?= thread_escape($homeLabel) ?></td>
+                                    <td><span class="badge badge-status <?= $isDeleted ? 'badge-status-deleted' : 'badge-status-active' ?>"><?= $isDeleted ? 'Deleted' : 'Active' ?></span></td>
+                                    <td class="account-actions">
+                                        <button type="button" class="btn-edit-account" onclick="openEditAccountModal(this)">
+                                            <i class="fa-solid fa-pen-to-square"></i> Edit
+                                        </button>
+                                        <?php if ($isDeleted): ?>
+                                            <form method="POST" action="admin-account-process.php" style="display: inline;">
+                                                <input type="hidden" name="action" value="restore">
+                                                <input type="hidden" name="user_id" value="<?= $userId ?>">
+                                                <button type="submit" class="btn-restore-account">
+                                                    <i class="fa-solid fa-rotate-left"></i> Restore
+                                                </button>
+                                            </form>
+                                        <?php elseif ($userId !== $currentUserId): ?>
+                                            <button type="button" class="btn-delete-account" onclick="openDeleteConfirm(this)">
+                                                <i class="fa-solid fa-trash"></i> Delete
+                                            </button>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+
+                    <div id="accounts-empty-state" class="accounts-empty-state" style="display: <?= $accounts === [] ? 'block' : 'none' ?>;">
+                        <i class="fa-solid fa-user-slash" style="font-size: 2rem; margin-bottom: 8px;"></i>
+                        <p>No accounts match your search.</p>
+                    </div>
+                </div>
+
+            <?php endif; ?>
         </div>
     </main>
 </div>
 
+<!-- ADD ACCOUNT MODAL -->
 <div class="modal-overlay" id="modal-add-account">
     <div class="modal-box">
         <div class="modal-header">
@@ -293,7 +290,7 @@
                 </div>
                 <div class="modal-form-group">
                     <label for="add-password">Temporary Password</label>
-                    <input type="password" id="add-password" name="password" required>
+                    <input type="password" id="add-password" name="password" required minlength="8">
                 </div>
             </div>
 
@@ -306,33 +303,32 @@
                         <option value="Admin">Admin</option>
                     </select>
                 </div>
-                <div class="modal-form-group" id="add-assigned-area-group">
-                    <label for="add-assigned-area">Assigned Area</label>
-                    <input type="text" id="add-assigned-area" name="assigned_area" placeholder="e.g. Marikina">
+                <div class="modal-form-group" id="add-assigned-location-group">
+                    <label for="add-assigned-location">Assigned Location</label>
+                    <select id="add-assigned-location" name="assigned_location_id">
+                        <option value="">— None —</option>
+                        <?php foreach ($locationsGrouped as $city => $districts): ?>
+                            <optgroup label="<?= thread_escape($city) ?>">
+                                <?php foreach ($districts as $district): ?>
+                                    <option value="<?= (int) $district['location_id'] ?>"><?= thread_escape($district['district']) ?></option>
+                                <?php endforeach; ?>
+                            </optgroup>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
             </div>
 
             <div class="modal-form-group">
                 <label for="add-home-location">Home Location</label>
                 <select id="add-home-location" name="home_location_id" required>
-                    <!-- populated from the locations table once db_connect.php exists -->
-                    <optgroup label="Manila">
-                        <option value="8">Taft Avenue</option>
-                        <option value="10">Quiapo</option>
-                    </optgroup>
-                    <optgroup label="Quezon City">
-                        <option value="26">Diliman</option>
-                        <option value="27">Katipunan</option>
-                    </optgroup>
-                    <optgroup label="Pasig">
-                        <option value="70">Ortigas</option>
-                    </optgroup>
-                    <optgroup label="Marikina">
-                        <option value="60">Marikina Heights</option>
-                    </optgroup>
-                    <optgroup label="Muntinlupa">
-                        <option value="45">Alabang</option>
-                    </optgroup>
+                    <option value="" disabled selected>Select a location</option>
+                    <?php foreach ($locationsGrouped as $city => $districts): ?>
+                        <optgroup label="<?= thread_escape($city) ?>">
+                            <?php foreach ($districts as $district): ?>
+                                <option value="<?= (int) $district['location_id'] ?>"><?= thread_escape($district['district']) ?></option>
+                            <?php endforeach; ?>
+                        </optgroup>
+                    <?php endforeach; ?>
                 </select>
                 <small>Determines which incident notifications this account receives by default.</small>
             </div>
@@ -345,6 +341,7 @@
     </div>
 </div>
 
+<!-- EDIT ACCOUNT MODAL -->
 <div class="modal-overlay" id="modal-edit-account">
     <div class="modal-box">
         <div class="modal-header">
@@ -357,14 +354,6 @@
         <form id="edit-account-form" action="admin-account-process.php" method="POST">
             <input type="hidden" name="action" value="update">
             <input type="hidden" id="edit-user-id" name="user_id">
-
-            <div class="status-toggle-row">
-                <span>Account Active</span>
-                <label class="switch">
-                    <input type="checkbox" id="edit-status-toggle" name="is_active">
-                    <span class="switch-slider"></span>
-                </label>
-            </div>
 
             <div class="modal-form-row">
                 <div class="modal-form-group">
@@ -403,38 +392,37 @@
                         <option value="Admin">Admin</option>
                     </select>
                 </div>
-                <div class="modal-form-group" id="edit-assigned-area-group">
-                    <label for="edit-assigned-area">Assigned Area</label>
-                    <input type="text" id="edit-assigned-area" name="assigned_area" placeholder="e.g. Marikina">
+                <div class="modal-form-group" id="edit-assigned-location-group">
+                    <label for="edit-assigned-location">Assigned Location</label>
+                    <select id="edit-assigned-location" name="assigned_location_id">
+                        <option value="">— None —</option>
+                        <?php foreach ($locationsGrouped as $city => $districts): ?>
+                            <optgroup label="<?= thread_escape($city) ?>">
+                                <?php foreach ($districts as $district): ?>
+                                    <option value="<?= (int) $district['location_id'] ?>"><?= thread_escape($district['district']) ?></option>
+                                <?php endforeach; ?>
+                            </optgroup>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
             </div>
 
             <div class="modal-form-group">
                 <label for="edit-home-location">Home Location</label>
                 <select id="edit-home-location" name="home_location_id" required>
-                    <optgroup label="Manila">
-                        <option value="8">Taft Avenue</option>
-                        <option value="10">Quiapo</option>
-                    </optgroup>
-                    <optgroup label="Quezon City">
-                        <option value="26">Diliman</option>
-                        <option value="27">Katipunan</option>
-                    </optgroup>
-                    <optgroup label="Pasig">
-                        <option value="70">Ortigas</option>
-                    </optgroup>
-                    <optgroup label="Marikina">
-                        <option value="60">Marikina Heights</option>
-                    </optgroup>
-                    <optgroup label="Muntinlupa">
-                        <option value="45">Alabang</option>
-                    </optgroup>
+                    <?php foreach ($locationsGrouped as $city => $districts): ?>
+                        <optgroup label="<?= thread_escape($city) ?>">
+                            <?php foreach ($districts as $district): ?>
+                                <option value="<?= (int) $district['location_id'] ?>"><?= thread_escape($district['district']) ?></option>
+                            <?php endforeach; ?>
+                        </optgroup>
+                    <?php endforeach; ?>
                 </select>
             </div>
 
             <div class="modal-form-group">
                 <label for="edit-password">Reset Password</label>
-                <input type="password" id="edit-password" name="password" placeholder="Leave blank to keep current password">
+                <input type="password" id="edit-password" name="password" minlength="8" placeholder="Leave blank to keep current password">
             </div>
 
             <div class="modal-footer">
@@ -445,6 +433,7 @@
     </div>
 </div>
 
+<!-- DELETE CONFIRMATION MODAL -->
 <div class="modal-overlay" id="modal-delete-confirm">
     <div class="modal-box modal-box-small">
         <div class="modal-header">
@@ -459,10 +448,14 @@
             This is a soft delete — the account can be restored later from this same page.
         </p>
 
-        <div class="modal-footer">
-            <button type="button" class="modal-btn modal-btn-cancel" onclick="closeModal('modal-delete-confirm')">Cancel</button>
-            <button type="button" class="modal-btn modal-btn-danger" onclick="confirmDeleteAccount()">Delete Account</button>
-        </div>
+        <form id="delete-confirm-form" method="POST" action="admin-account-process.php">
+            <input type="hidden" name="action" value="delete">
+            <input type="hidden" id="delete-confirm-user-id" name="user_id">
+            <div class="modal-footer">
+                <button type="button" class="modal-btn modal-btn-cancel" onclick="closeModal('modal-delete-confirm')">Cancel</button>
+                <button type="submit" class="modal-btn modal-btn-danger">Delete Account</button>
+            </div>
+        </form>
     </div>
 </div>
 

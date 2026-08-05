@@ -1,4 +1,4 @@
-
+/* MODAL OPEN / CLOSE HELPERS                                     */
 function openModal(modalId) {
     document.getElementById(modalId).classList.add('modal-open');
 }
@@ -6,6 +6,7 @@ function openModal(modalId) {
 function closeModal(modalId) {
     document.getElementById(modalId).classList.remove('modal-open');
 }
+
 document.querySelectorAll('.modal-overlay').forEach(overlay => {
     overlay.addEventListener('click', (e) => {
         if (e.target === overlay) {
@@ -17,9 +18,11 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
 /* ADD ACCOUNT                                                    */
 function openAddAccountModal() {
     document.getElementById('add-account-form').reset();
-    toggleAssignedArea('add');
+    toggleAssignedLocation('add');
     openModal('modal-add-account');
 }
+
+/* EDIT ACCOUNT — populate modal fields from the row's data-* attrs */
 function openEditAccountModal(button) {
     const row = button.closest('tr');
     const data = row.dataset;
@@ -31,70 +34,40 @@ function openEditAccountModal(button) {
     document.getElementById('edit-email').value = data.email;
     document.getElementById('edit-phone').value = data.phone;
     document.getElementById('edit-role').value = data.role;
-    document.getElementById('edit-assigned-area').value = data.assignedArea || '';
+    document.getElementById('edit-assigned-location').value = data.assignedLocationId && data.assignedLocationId !== '0' ? data.assignedLocationId : '';
     document.getElementById('edit-home-location').value = data.homeLocationId || '';
-    document.getElementById('edit-status-toggle').checked = data.isDeleted !== 'true';
+    document.getElementById('edit-password').value = '';
 
-    toggleAssignedArea('edit');
+    toggleAssignedLocation('edit');
     openModal('modal-edit-account');
 }
 
-function toggleAssignedArea(prefix) {
+/* SHOW/HIDE "Assigned Location" FIELD — only relevant for Officials */
+function toggleAssignedLocation(prefix) {
     const roleSelect = document.getElementById(prefix + '-role');
-    const areaGroup = document.getElementById(prefix + '-assigned-area-group');
+    const locationGroup = document.getElementById(prefix + '-assigned-location-group');
     if (roleSelect.value === 'Official') {
-        areaGroup.classList.remove('modal-hidden-field');
+        locationGroup.classList.remove('modal-hidden-field');
     } else {
-        areaGroup.classList.add('modal-hidden-field');
+        locationGroup.classList.add('modal-hidden-field');
     }
 }
 
-document.getElementById('add-role').addEventListener('change', () => toggleAssignedArea('add'));
-document.getElementById('edit-role').addEventListener('change', () => toggleAssignedArea('edit'));
+document.getElementById('add-role').addEventListener('change', () => toggleAssignedLocation('add'));
+document.getElementById('edit-role').addEventListener('change', () => toggleAssignedLocation('edit'));
 
-let pendingDeleteRow = null;
-
+/* DELETE CONFIRMATION — submits the real delete form on confirm  */
 function openDeleteConfirm(button) {
-    pendingDeleteRow = button.closest('tr');
-    const name = pendingDeleteRow.dataset.firstName + ' ' + pendingDeleteRow.dataset.lastName;
+    const row = button.closest('tr');
+    const name = row.dataset.firstName + ' ' + row.dataset.lastName;
+
     document.getElementById('delete-confirm-name').textContent = name;
+    document.getElementById('delete-confirm-user-id').value = row.dataset.userId;
+
     openModal('modal-delete-confirm');
 }
 
-function confirmDeleteAccount() {
-    if (pendingDeleteRow) {
-        pendingDeleteRow.classList.add('row-deleted');
-        const statusBadge = pendingDeleteRow.querySelector('.badge-status');
-        statusBadge.textContent = 'Deleted';
-        statusBadge.classList.remove('badge-status-active');
-        statusBadge.classList.add('badge-status-deleted');
-
-        const actionsCell = pendingDeleteRow.querySelector('.account-actions');
-        const deleteBtn = actionsCell.querySelector('.btn-delete-account');
-        deleteBtn.textContent = '';
-        deleteBtn.innerHTML = '<i class="fa-solid fa-rotate-left"></i> Restore';
-        deleteBtn.classList.remove('btn-delete-account');
-        deleteBtn.classList.add('btn-restore-account');
-        deleteBtn.setAttribute('onclick', 'openRestoreConfirm(this)');
-    }
-    closeModal('modal-delete-confirm');
-    pendingDeleteRow = null;
-}
-
-function openRestoreConfirm(button) {
-    const row = button.closest('tr');
-    row.classList.remove('row-deleted');
-    const statusBadge = row.querySelector('.badge-status');
-    statusBadge.textContent = 'Active';
-    statusBadge.classList.remove('badge-status-deleted');
-    statusBadge.classList.add('badge-status-active');
-
-    button.innerHTML = '<i class="fa-solid fa-trash"></i> Delete';
-    button.classList.remove('btn-restore-account');
-    button.classList.add('btn-delete-account');
-    button.setAttribute('onclick', 'openDeleteConfirm(this)');
-}
-
+/* LIVE SEARCH + ROLE FILTER (client-side, over the PHP-rendered rows) */
 function filterAccountsTable() {
     const searchTerm = document.getElementById('accounts-search-input').value.toLowerCase();
     const roleFilter = document.getElementById('accounts-role-filter').value;
@@ -118,8 +91,13 @@ function filterAccountsTable() {
         }
     });
 
-    document.getElementById('accounts-empty-state').style.display = visibleCount === 0 ? 'block' : 'none';
+    const emptyState = document.getElementById('accounts-empty-state');
+    if (emptyState) {
+        emptyState.style.display = visibleCount === 0 ? 'block' : 'none';
+    }
 }
 
-document.getElementById('accounts-search-input').addEventListener('input', filterAccountsTable);
-document.getElementById('accounts-role-filter').addEventListener('change', filterAccountsTable);
+const searchInput = document.getElementById('accounts-search-input');
+const roleFilterSelect = document.getElementById('accounts-role-filter');
+if (searchInput) searchInput.addEventListener('input', filterAccountsTable);
+if (roleFilterSelect) roleFilterSelect.addEventListener('change', filterAccountsTable);
