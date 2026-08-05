@@ -11,7 +11,7 @@ if (is_authenticated()) {
 
     switch ($role) {
         case 'Admin':
-            header('Location: ../admin/admin-home.php');
+            header('Location: ../admin/admin-manage-accounts.php');
             break;
 
         case 'Official':
@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             switch ($user['role']) {
                 case 'Admin':
-                    header('Location: ../admin/admin-home.php');
+                    header('Location: ../admin/admin-manage-accounts.php');
                     break;
 
                 case 'Official':
