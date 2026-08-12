@@ -89,18 +89,7 @@ try {
             <span class="sidebar-title">ADMINISTRATION</span>
             <div class="sidebar-options">
                 <a href="admin-manage-accounts.php" style="font-weight: bold;">Manage Accounts</a>
-                <a href="#">Platform Analytics</a>
-                <a href="#">Audit Logs</a>
-            </div>
-            <hr>
-        </div>
-
-        <div class="sidebar-options-wrapper">
-            <span class="sidebar-title">CONTENT</span>
-            <div class="sidebar-options">
-                <a href="#">Official Advisories</a>
-                <a href="../user/user-threads.php">All Threads</a>
-                <a href="#">Archived Threads</a>
+                <a href="admin-platform-analytics.php">Platform Analytics</a>
             </div>
             <hr>
         </div>
@@ -108,8 +97,7 @@ try {
         <div class="sidebar-options-wrapper">
             <span class="sidebar-title">GENERAL</span>
             <div class="sidebar-options">
-                <a href="../../index.php">Back to Feed</a>
-                <a href="#">Account Profile</a>
+                <a href="/IT-PROG-LISSENTIALMANILA-MAIN/pages/user/user-profile.php">Account Profile</a>
             </div>
         </div>
 
