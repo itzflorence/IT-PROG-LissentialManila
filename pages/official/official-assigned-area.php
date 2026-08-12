@@ -132,7 +132,7 @@ foreach ($threadsInArea as $threadRow) {
             <span class="sidebar-title">GENERAL</span>
             <div class="sidebar-options">
                 <a href="../../index.php">Back to Feed</a>
-                <a href="#">Account Profile</a>
+                <a href="/IT-PROG-LISSENTIALMANILA-MAIN/pages/user/user-profile.php">Account Profile</a>
             </div>
         </div>
 
