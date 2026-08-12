@@ -1,0 +1,216 @@
+@import url(../shared/global.css);
+@import url(../shared/navbar.css);
+
+.profile-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-medium);
+    padding: var(--space-medium);
+    width: 100%;
+    max-width: 720px;
+}
+
+.profile-header {
+    padding-bottom: var(--space-small);
+    border-bottom: 1px solid var(--color3);
+}
+
+.profile-header h1 {
+    font-size: var(--font-xlarge);
+    font-weight: 700;
+    color: var(--colorText);
+}
+
+.profile-header p {
+    font-size: var(--font-small);
+    color: var(--color4);
+    margin-top: 4px;
+}
+
+/* SUMMARY CARD */
+.profile-summary-card {
+    display: flex;
+    align-items: center;
+    gap: var(--space-medium);
+    padding: var(--space-medium);
+    background-color: var(--color2);
+    border: 1px solid var(--color3);
+    border-radius: 14px;
+}
+
+.profile-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background-color: var(--color5);
+    color: var(--color1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.profile-summary-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.profile-summary-info h2 {
+    font-size: var(--font-large);
+    font-weight: 700;
+    color: var(--colorText);
+}
+
+.profile-summary-info span.profile-username {
+    color: var(--color4);
+    font-size: var(--font-small);
+}
+
+.profile-summary-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.profile-summary-meta span {
+    font-size: var(--font-xsmall);
+    color: var(--color4);
+    background-color: var(--color1);
+    border: 1px solid var(--color3);
+    border-radius: 999px;
+    padding: 3px 10px;
+}
+
+/* SECTION CARDS (reuses modal-form-group visual language) */
+.profile-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-medium);
+    padding: var(--space-medium);
+    background-color: var(--color1);
+    border: 1px solid var(--color3);
+    border-radius: 14px;
+}
+
+.profile-section h3 {
+    font-size: var(--font-medium);
+    font-weight: 700;
+    color: var(--colorText);
+}
+
+.profile-form-row {
+    display: flex;
+    gap: var(--space-medium);
+}
+
+.profile-form-row .profile-form-group {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.profile-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.profile-form-group label {
+    font-size: var(--font-xsmall);
+    font-weight: 700;
+    color: var(--color4);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.profile-form-group input,
+.profile-form-group select {
+    width: 100%;
+    padding: var(--space-xsmall) 0;
+    border: none;
+    border-bottom: 2px solid var(--color3);
+    background-color: transparent;
+    color: var(--colorText);
+    font-family: inherit;
+    font-size: 1rem;
+    transition: border-color 0.2s ease;
+}
+
+.profile-form-group input:focus,
+.profile-form-group select:focus {
+    outline: none;
+    border-bottom-color: var(--colorBlue);
+}
+
+.profile-form-group small {
+    color: var(--color4);
+    font-size: var(--font-xsmall);
+}
+
+.profile-form-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.profile-btn {
+    padding: 10px 24px;
+    font-size: var(--font-small);
+    font-weight: 700;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    background-color: var(--color5);
+    color: var(--color1);
+    transition: transform 0.2s ease;
+}
+
+.profile-btn:hover {
+    transform: scale(1.03);
+}
+
+.profile-btn:active {
+    transform: scale(0.98);
+}
+
+.profile-btn-secondary {
+    background-color: var(--color3);
+    color: var(--colorText);
+}
+
+/* PHONE VERIFICATION PANEL */
+.phone-pending-banner {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: var(--space-small) var(--space-medium);
+    background-color: #fff3cd;
+    color: #7a5c00;
+    border-radius: 10px;
+    font-size: var(--font-small);
+}
+
+.phone-dev-code {
+    display: inline-block;
+    margin-top: 4px;
+    padding: 4px 10px;
+    background-color: var(--color1);
+    border: 1px dashed #7a5c00;
+    border-radius: 6px;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+
+@media (max-width: 768px) {
+    .profile-form-row {
+        flex-direction: column;
+        gap: var(--space-medium);
+    }
+
+    .profile-summary-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
