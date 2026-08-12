@@ -141,7 +141,7 @@ try {
                 <a href="#">Reports Near Me</a>
                 <a href="#">Saved Locations</a>
                 <a href="#">My Comments</a>
-                <a href="#">Account Profile</a>
+                <a href="/IT-PROG-LISSENTIALMANILA-MAIN/pages/user/user-profile.php">Account Profile</a>
             </div>
             <hr>
         </div>
