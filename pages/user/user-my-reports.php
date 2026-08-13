@@ -259,24 +259,20 @@ try {
                 <?php
                 $reportId = (int) $report['report_id'];
 
-                // Format location
                 $locationParts = [];
                 if (!empty($report['district'])) $locationParts[] = $report['district'];
                 if (!empty($report['city'])) $locationParts[] = $report['city'];
                 $locationLabel = $locationParts !== [] ? implode(', ', $locationParts) : 'Unknown location';
 
-                // Format Status
                 $status = (string) $report['status'];
                 $statusUpper = strtoupper($status);
                 $statusClassSuffix = strtolower((string) preg_replace('/[^a-z0-9]+/i', '-', $status));
                 if ($statusClassSuffix === '') $statusClassSuffix = 'pending';
                 $isVerified = ((int) ($report['verified_by'] ?? 0) > 0) || in_array($status, ['Verified', 'Resolved'], true);
 
-                // Format Dates
                 $timeLabel = relative_time_label((string) ($report['created_at'] ?? ''));
                 $dateTimeLabels = report_date_time_labels((string) ($report['created_at'] ?? ''));
 
-                // Media
                 $mediaItems = $mediaByReport[$reportId] ?? [];
                 ?>
                 <a href="user-report-details.php?id=<?php echo $reportId; ?>" class="post-link">
