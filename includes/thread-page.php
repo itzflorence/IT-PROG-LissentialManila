@@ -33,6 +33,9 @@ $myReportsUrl = $isAuthenticated ? 'user-my-reports.php' : $loginUrl;
 $allThreadsUrl = $isAuthenticated ? 'user-threads.php' : $loginUrl;
 $activeThreadsUrl = $isAuthenticated ? 'user-active-threads.php' : $loginUrl;
 $resolvedThreadsUrl = $isAuthenticated ? 'user-resolved-threads.php' : $loginUrl;
+$archivedThreadsUrl = $isAuthenticated ? 'user-archived-threads.php' : $loginUrl;
+$nearMeUrl = $isAuthenticated ? 'user-reports-near-me.php' : $loginUrl;
+$profileUrl = $isAuthenticated ? 'user-profile.php' : $loginUrl;
 
 // Sidebar category links can preserve a valid report status filter
 $allowedStatuses = ['Pending', 'Verified', 'Resolved', 'Rejected'];
@@ -100,8 +103,12 @@ $currentFile = basename((string) ($_SERVER['PHP_SELF'] ?? 'user-threads.php'));
         <div class="icon-button-wrapper">
             <button type="button" class="icon-button" aria-label="Notifications"><i class="fa-solid fa-bell"></i></button>
 
-            <button type="button" class="icon-button" title="Log out" onclick="window.location.href='<?= thread_escape($logoutUrl) ?>'">
+            <button type="button" class="icon-button" title="Account Profile" onclick="window.location.href='<?= thread_escape($profileUrl) ?>'">
                 <i class="fa-solid fa-user"></i>
+            </button>
+
+            <button type="button" class="icon-button" title="Log out" onclick="window.location.href='<?= thread_escape($logoutUrl) ?>'">
+                <i class="fa-solid fa-right-from-bracket"></i>
             </button>
         </div>
         <?php else: ?>
@@ -138,10 +145,10 @@ $currentFile = basename((string) ($_SERVER['PHP_SELF'] ?? 'user-threads.php'));
             <span class="sidebar-title">MY ACTIVITY</span>
             <div class="sidebar-options">
                 <a href="<?= thread_escape($myReportsUrl) ?>">My Reports</a>
-                <a href="#">Reports Near Me</a>
+                <a href="<?= thread_escape($nearMeUrl) ?>">Reports Near Me</a>
                 <a href="#">Saved Locations</a>
                 <a href="#">My Comments</a>
-                <a href="#">Account Profile</a>
+                <a href="<?= thread_escape($profileUrl) ?>">Account Profile</a>
             </div>
             <hr>
         </div>
@@ -175,6 +182,7 @@ $currentFile = basename((string) ($_SERVER['PHP_SELF'] ?? 'user-threads.php'));
                 <a href="<?= thread_escape($allThreadsUrl) ?>">All</a>
                 <a href="<?= thread_escape($activeThreadsUrl) ?>">Active</a>
                 <a href="<?= thread_escape($resolvedThreadsUrl) ?>">Resolved</a>
+                <a href="<?= thread_escape($archivedThreadsUrl) ?>">Archived</a>
             </div>
         </div>
 
@@ -197,9 +205,10 @@ $currentFile = basename((string) ($_SERVER['PHP_SELF'] ?? 'user-threads.php'));
         </section>
 
         <nav class="thread-tabs" aria-label="Thread status filters">
-            <a class="<?= $pageStatus === 'All' ? 'is-active' : '' ?>" href="user-threads.php">All</a>
-            <a class="<?= $pageStatus === 'Active' ? 'is-active' : '' ?>" href="user-active-threads.php">Active</a>
-            <a class="<?= $pageStatus === 'Resolved' ? 'is-active' : '' ?>" href="user-resolved-threads.php">Resolved</a>
+            <a class="<?= $pageStatus === 'All' ? 'is-active' : '' ?>" href="user-threads.php">All (<?= (int) $counts['all'] ?>)</a>
+            <a class="<?= $pageStatus === 'Active' ? 'is-active' : '' ?>" href="user-active-threads.php">Active (<?= (int) $counts['Active'] ?>)</a>
+            <a class="<?= $pageStatus === 'Resolved' ? 'is-active' : '' ?>" href="user-resolved-threads.php">Resolved (<?= (int) $counts['Resolved'] ?>)</a>
+            <a class="<?= $pageStatus === 'Archived' ? 'is-active' : '' ?>" href="user-archived-threads.php">Archived (<?= (int) $counts['Archived'] ?>)</a>
         </nav>
 
         <?php if ($errorMessage !== null): ?>
