@@ -107,12 +107,12 @@ try {
                 </a>
             </div>
 
-<form class="searchbar" action="pages/user/user-search-results.php" method="GET">
-    <input type="search" name="q" placeholder="Search by title or location..." required>
-    <button type="submit" class="search-btn" aria-label="Submit search">
-        <i class="fa-solid fa-magnifying-glass"></i>
-    </button>
-</form>
+            <form class="searchbar" action="pages/user/user-search-results.php" method="GET">
+                <input type="search" name="q" placeholder="Search by title or location..." required>
+                <button type="submit" class="search-btn" aria-label="Submit search">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
+            </form>
 
             <?php if ($isAuthenticated): ?>
             <div class="auth-state-pill auth-state-pill--user">
