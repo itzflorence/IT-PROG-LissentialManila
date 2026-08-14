@@ -1,5 +1,4 @@
-<?php
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 require_once __DIR__ . '/../../includes/auth.php';
 require_once __DIR__ . '/../../includes/thread-query.php';
@@ -26,56 +25,74 @@ if ($currentUserId === null) {
     exit;
 }
 
+$postType = trim((string) ($_POST['post_type'] ?? 'thread'));
 $title = trim((string) ($_POST['title'] ?? ''));
-$categoryId = filter_input(INPUT_POST, 'category_id', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
-$categoryId = $categoryId === false ? null : $categoryId;
 $locationId = filter_input(INPUT_POST, 'location_id', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
 $locationId = $locationId === false ? null : $locationId;
-$status = trim((string) ($_POST['status'] ?? 'Active'));
 $description = trim((string) ($_POST['description'] ?? ''));
-$description = $description === '' ? null : $description;
 
-$allowedThreadStatuses = ['Active', 'Resolved', 'Archived'];
-
+// Shared Validation
 if ($title === '' || (function_exists('mb_strlen') ? mb_strlen($title) : strlen($title)) > 255) {
-    header('Location: ' . $redirectBack . ($reportId !== null ? '&' : '?') . 'error=' . urlencode('Thread title is required and must be 255 characters or fewer.'));
+    header('Location: ' . $redirectBack . ($reportId !== null ? '&' : '?') . 'error=' . urlencode('Title is required and must be 255 characters or fewer.'));
     exit;
 }
-
-if ($categoryId === null) {
-    header('Location: ' . $redirectBack . ($reportId !== null ? '&' : '?') . 'error=' . urlencode('Please select a valid category.'));
-    exit;
-}
-
 if ($locationId === null) {
     header('Location: ' . $redirectBack . ($reportId !== null ? '&' : '?') . 'error=' . urlencode('Please select a valid location.'));
     exit;
 }
-
-if (!in_array($status, $allowedThreadStatuses, true)) {
-    $status = 'Active';
+if ($description === '') {
+    header('Location: ' . $redirectBack . ($reportId !== null ? '&' : '?') . 'error=' . urlencode('Description/Details cannot be empty.'));
+    exit;
 }
 
 try {
     $db = thread_db();
 
+    // ==========================================
+    // ROUTE 1: OFFICIAL ADVISORY
+    // ==========================================
+    if ($postType === 'advisory') {
+        $stmt = $db->prepare('INSERT INTO advisories (title, content, location_id, posted_by) VALUES (?, ?, ?, ?)');
+        $stmt->bind_param('ssii', $title, $description, $locationId, $currentUserId);
+        $stmt->execute();
+
+        $advisoryId = (int) $db->insert_id;
+        official_log_action($db, $currentUserId, 'Create Advisory', 'advisory', $advisoryId, "Posted advisory \"{$title}\".");
+
+        header('Location: official-home.php?success=advisory_created');
+        exit;
+    }
+
+    // ==========================================
+    // ROUTE 2: INCIDENT THREAD (Default)
+    // ==========================================
+    $categoryId = filter_input(INPUT_POST, 'category_id', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+    $categoryId = $categoryId === false ? null : $categoryId;
+    $status = trim((string) ($_POST['status'] ?? 'Active'));
+    $allowedThreadStatuses = ['Active', 'Resolved', 'Archived'];
+
+    if ($categoryId === null) {
+        header('Location: ' . $redirectBack . ($reportId !== null ? '&' : '?') . 'error=' . urlencode('Please select a valid category.'));
+        exit;
+    }
+    if (!in_array($status, $allowedThreadStatuses, true)) {
+        $status = 'Active';
+    }
+
     $insertStmt = $db->prepare(
-        'INSERT INTO threads (title, location_id, category_id, created_by, status, description)
+        'INSERT INTO threads (title, location_id, category_id, created_by, status, description) 
          VALUES (?, ?, ?, ?, ?, ?)'
     );
     $insertStmt->bind_param('siiiss', $title, $locationId, $categoryId, $currentUserId, $status, $description);
     $insertStmt->execute();
 
     $newThreadId = (int) $db->insert_id;
-
     $logDescription = "Created thread #{$newThreadId} (\"{$title}\").";
 
     if ($reportId !== null) {
-        // Only link if the report exists, isn't deleted, and isn't already tied to a different thread by mistake.
         $linkStmt = $db->prepare('UPDATE reports SET thread_id = ? WHERE report_id = ? AND is_deleted = FALSE');
         $linkStmt->bind_param('ii', $newThreadId, $reportId);
         $linkStmt->execute();
-
         if ($linkStmt->affected_rows > 0) {
             $logDescription .= " Linked report #{$reportId} to it.";
         }
@@ -91,7 +108,8 @@ try {
 
     header('Location: official-edit-thread.php?id=' . $newThreadId . '&created=1');
     exit;
+
 } catch (Throwable $error) {
-    header('Location: ' . $redirectBack . ($reportId !== null ? '&' : '?') . 'error=' . urlencode('Unable to create the thread. Please check your inputs and try again.'));
+    header('Location: ' . $redirectBack . ($reportId !== null ? '&' : '?') . 'error=' . urlencode('Unable to process the request. Please check your inputs and try again.'));
     exit;
 }

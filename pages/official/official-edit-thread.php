@@ -65,10 +65,12 @@ $allowedThreadStatuses = ['Active', 'Resolved', 'Archived'];
         <div class="navbar-logo">
             <a href="official-home.php"><img src="../../assets/LOGO/logo_normal.png" alt="Lissential Manila logo"></a>
         </div>
-        <div class="searchbar">
-            <input type="search" placeholder="Search for a report...">
-            <i class="fa-solid fa-magnifying-glass"></i>
-        </div>
+        <form class="searchbar" action="official-home.php" method="GET">
+            <input type="search" name="q" placeholder="Search for a report..." required>
+            <button type="submit" class="search-btn" aria-label="Submit search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </button>
+        </form>
         <div class="auth-state-pill auth-state-pill--user">
             Logged in as <?= $safeUsername ?>
         </div>

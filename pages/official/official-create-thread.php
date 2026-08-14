@@ -1,5 +1,4 @@
-<?php
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 require_once __DIR__ . '/../../includes/auth.php';
 require_once __DIR__ . '/../../includes/thread-query.php';
@@ -18,7 +17,7 @@ $safeUsername = escape_html((string) ($username ?? ''));
 $loginUrl = '../auth/login.php';
 $logoutUrl = '../auth/logout.php';
 
-// Optional seed report: pre-fills title/category/location and gets linked to the new thread once it's created 
+// Optional seed report: pre-fills title/category/location and gets linked to the new thread once it's created
 $sourceReportId = filter_input(INPUT_GET, 'report_id', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
 $sourceReportId = $sourceReportId === false ? null : $sourceReportId;
 
@@ -63,10 +62,15 @@ $prefillDescription = $sourceReport ? (string) $sourceReport['description'] : ''
         <div class="navbar-logo">
             <a href="official-home.php"><img src="../../assets/LOGO/logo_normal.png" alt="Lissential Manila logo"></a>
         </div>
-        <div class="searchbar">
-            <input type="search" placeholder="Search for a report...">
-            <i class="fa-solid fa-magnifying-glass"></i>
-        </div>
+
+        <!-- Updated Search Bar -->
+        <form class="searchbar" action="official-home.php" method="GET">
+            <input type="search" name="q" placeholder="Search for a report..." required>
+            <button type="submit" class="search-btn" aria-label="Submit search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </button>
+        </form>
+
         <div class="auth-state-pill auth-state-pill--user">
             Logged in as <?php echo $safeUsername; ?>
         </div>
@@ -77,12 +81,10 @@ $prefillDescription = $sourceReport ? (string) $sourceReport['description'] : ''
             </button>
         </div>
     </header>
-
     <aside class="sidebar">
         <div class="create-report">
             <button type="button" onclick="window.location.href='official-create-thread.php'">CREATE THREAD</button>
         </div>
-
         <div class="sidebar-options-wrapper">
             <span class="sidebar-title">OFFICIAL ACTIONS</span>
             <div class="sidebar-options">
@@ -92,7 +94,6 @@ $prefillDescription = $sourceReport ? (string) $sourceReport['description'] : ''
             </div>
             <hr>
         </div>
-
         <div class="sidebar-options-wrapper">
             <span class="sidebar-title">INCIDENT THREADS</span>
             <div class="sidebar-options">
@@ -103,7 +104,6 @@ $prefillDescription = $sourceReport ? (string) $sourceReport['description'] : ''
             </div>
             <hr>
         </div>
-
         <div class="sidebar-options-wrapper">
             <span class="sidebar-title">GENERAL</span>
             <div class="sidebar-options">
@@ -111,7 +111,6 @@ $prefillDescription = $sourceReport ? (string) $sourceReport['description'] : ''
                 <a href="../user/user-profile.php">Account Profile</a>
             </div>
         </div>
-
         <span class="copyright-footer">IT-PROG © 2026. All rights reserved.</span>
     </aside>
 </nav>
@@ -131,7 +130,7 @@ $prefillDescription = $sourceReport ? (string) $sourceReport['description'] : ''
                 <?php if ($sourceReport !== null): ?>
                     Group report #<?php echo (int) $sourceReport['report_id']; ?> ("<?php echo escape_html((string) $sourceReport['title']); ?>") under a new official thread. The report links to it automatically once created.
                 <?php else: ?>
-                    Start a new official thread to group related incident reports at a location.
+                    Start a new official thread to group related incident reports at a location, or post an official advisory.
                 <?php endif; ?>
             </p>
         </section>
@@ -150,12 +149,27 @@ $prefillDescription = $sourceReport ? (string) $sourceReport['description'] : ''
 
                 <div class="verification-panel" style="border: none; padding: 0;">
                     <div class="verification-grid">
+
+                        <!-- Post Type Toggle -->
+                        <div class="verification-field verification-field--full" <?php echo $sourceReportId !== null ? 'style="display:none;"' : ''; ?>>
+                            <label>Post Type</label>
+                            <div style="display: flex; gap: var(--space-medium); margin-top: 8px;">
+                                <label style="cursor: pointer;">
+                                    <input type="radio" name="post_type" value="thread" checked onchange="togglePostType()"> Incident Thread
+                                </label>
+                                <label style="cursor: pointer;">
+                                    <input type="radio" name="post_type" value="advisory" onchange="togglePostType()"> Official Advisory
+                                </label>
+                            </div>
+                            <small>Advisories are broadcasted publicly on the main feed.</small>
+                        </div>
+
                         <div class="verification-field verification-field--full">
-                            <label for="thread-title">Thread Title</label>
+                            <label id="title-label" for="thread-title">Thread Title</label>
                             <input type="text" id="thread-title" name="title" value="<?php echo escape_html($prefillTitle); ?>" maxlength="255" placeholder="e.g. Taft Avenue Localized Flooding" required>
                         </div>
 
-                        <div class="verification-field">
+                        <div class="verification-field" id="category-container">
                             <label for="thread-category">Category</label>
                             <select id="thread-category" name="category_id" required>
                                 <?php foreach ($categories as $category): ?>
@@ -166,7 +180,7 @@ $prefillDescription = $sourceReport ? (string) $sourceReport['description'] : ''
                             </select>
                         </div>
 
-                        <div class="verification-field">
+                        <div class="verification-field" id="location-container">
                             <label for="thread-location">Location</label>
                             <select id="thread-location" name="location_id" required>
                                 <?php foreach ($locationsGrouped as $city => $districts): ?>
@@ -181,7 +195,7 @@ $prefillDescription = $sourceReport ? (string) $sourceReport['description'] : ''
                             </select>
                         </div>
 
-                        <div class="verification-field">
+                        <div class="verification-field" id="status-container">
                             <label for="thread-status">Initial Status</label>
                             <select id="thread-status" name="status">
                                 <option value="Active" selected>Active</option>
@@ -192,19 +206,42 @@ $prefillDescription = $sourceReport ? (string) $sourceReport['description'] : ''
                         </div>
 
                         <div class="verification-field verification-field--full">
-                            <label for="thread-description">Description / Remarks</label>
-                            <textarea id="thread-description" name="description" placeholder="Explain the incident this thread is tracking..."><?php echo escape_html($prefillDescription); ?></textarea>
+                            <label id="desc-label" for="thread-description">Description / Remarks</label>
+                            <textarea id="thread-description" name="description" placeholder="Explain the incident this thread is tracking..." style="min-height: 120px;" required><?php echo escape_html($prefillDescription); ?></textarea>
                         </div>
                     </div>
                 </div>
 
                 <div class="form-submit-wrapper" style="display: flex; justify-content: flex-end; gap: var(--space-small); margin-top: var(--space-medium);">
                     <button type="button" class="btn-post-report" style="background-color: var(--color3); color: var(--colorText);" onclick="window.location.href='<?php echo $sourceReportId !== null ? 'official-edit-report.php?id=' . $sourceReportId : 'official-home.php'; ?>'">Cancel</button>
-                    <button type="submit" class="btn-post-report">Create Thread</button>
+                    <button type="submit" id="submit-btn" class="btn-post-report">Create Thread</button>
                 </div>
             </form>
         </div>
     </main>
 </div>
+
+<script>
+    function togglePostType() {
+        const isAdvisory = document.querySelector('input[name="post_type"]:checked').value === 'advisory';
+
+        // Toggle visibility of fields
+        document.getElementById('category-container').style.display = isAdvisory ? 'none' : 'block';
+        document.getElementById('status-container').style.display = isAdvisory ? 'none' : 'block';
+
+        // Update labels and placeholders
+        document.getElementById('title-label').textContent = isAdvisory ? 'Headline / Title' : 'Thread Title';
+        document.getElementById('thread-title').placeholder = isAdvisory ? 'e.g. Heavy Rain Warning' : 'e.g. Taft Avenue Localized Flooding';
+
+        document.getElementById('desc-label').textContent = isAdvisory ? 'Announcement Details' : 'Description / Remarks';
+        document.getElementById('thread-description').placeholder = isAdvisory ? 'Provide details, instructions, or updates for the public...' : 'Explain the incident this thread is tracking...';
+
+        // Update Button Text
+        document.getElementById('submit-btn').textContent = isAdvisory ? 'Post Advisory' : 'Create Thread';
+
+        // Toggle required attributes so form validation doesn't block submission
+        document.getElementById('thread-category').required = !isAdvisory;
+    }
+</script>
 </body>
 </html>
