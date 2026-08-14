@@ -19,9 +19,11 @@ $logoutUrl = 'pages/auth/logout.php';
 $registerUrl = 'pages/auth/register.php';
 $createReportUrl = $isAuthenticated ? 'pages/user/user-create-report.php' : $registerUrl;
 $myReportsUrl = $isAuthenticated ? 'pages/user/user-my-reports.php' : $loginUrl;
+$nearMeUrl = $isAuthenticated ? 'pages/user/user-reports-near-me.php' : $loginUrl;
+$profileUrl = $isAuthenticated ? 'pages/user/user-profile.php' : $loginUrl;
 $activeThreadsUrl = $isAuthenticated ? 'pages/user/user-active-threads.php' : $loginUrl;
 $resolvedThreadsUrl = $isAuthenticated ? 'pages/user/user-resolved-threads.php' : $loginUrl;
-$archivedThreadsUrl = $isAuthenticated ? 'pages/user/user-threads.php?status=Archived' : $loginUrl;
+$archivedThreadsUrl = $isAuthenticated ? 'pages/user/user-archived-threads.php' : $loginUrl;
 
 $allowedStatuses = ['Pending', 'Verified', 'Resolved', 'Rejected'];
 $selectedStatus = trim((string) ($_GET['status'] ?? ''));
@@ -113,8 +115,12 @@ try {
                     <i class="fa-solid fa-bell"></i>
                 </button>
 
-                <button type="button" class="icon-button" title="Log out" onclick="window.location.href='<?php echo $logoutUrl; ?>'">
+                <button type="button" class="icon-button" title="Account Profile" onclick="window.location.href='<?php echo $profileUrl; ?>'">
                     <i class="fa-solid fa-user"></i>
+                </button>
+
+                <button type="button" class="icon-button" title="Log out" onclick="window.location.href='<?php echo $logoutUrl; ?>'">
+                    <i class="fa-solid fa-right-from-bracket"></i>
                 </button>
             </div>
             <?php else: ?>
@@ -151,10 +157,10 @@ try {
                 <span class="sidebar-title">MY ACTIVITY</span>
                 <div class="sidebar-options">
                     <a href="<?php echo $myReportsUrl; ?>">My Reports</a>
-                    <a href="#">Reports Near Me</a>
+                    <a href="<?php echo $nearMeUrl; ?>">Reports Near Me</a>
                     <a href="#">Saved Locations</a>
                     <a href="#">My Comments</a>
-                    <a href="/IT-PROG-LISSENTIALMANILA-MAIN/pages/user/user-profile.php">Account Profile</a>
+                    <a href="<?php echo $profileUrl; ?>">Account Profile</a>
                 </div>
                 <hr>
             </div>
