@@ -39,7 +39,7 @@ try {
     }
     $locationsGrouped = official_fetch_locations_grouped($db);
 } catch (Throwable $error) {
-    $loadError = 'Unable to load your profile right now. Please make sure MySQL is running and the database has been imported.';
+    $loadError = $error->getMessage();
 }
 
 $initials = '';
