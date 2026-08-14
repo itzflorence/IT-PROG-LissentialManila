@@ -77,11 +77,28 @@
     border-color: var(--color4);
 }
 
-.searchbar i {
+.searchbar .search-btn {
     position: relative;
-    right: 35px;
+    margin-left: -40px;
+    z-index: 2;
+
+    background: transparent;
+    border: none;
     color: var(--color4);
-    pointer-events: none;
+    cursor: pointer;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.1s ease;
+}
+
+.searchbar .search-btn:hover {
+    color: var(--color5);
+}
+
+.searchbar .search-btn i {
+    font-size: 16px;
 }
 
 .icon-button-wrapper {
