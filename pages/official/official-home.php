@@ -147,7 +147,7 @@ foreach ($reports as $reportRow) {
             <span class="sidebar-title">GENERAL</span>
             <div class="sidebar-options">
                 <a href="official-home.php">Review Queue</a>
-                <a href="/IT-PROG-LISSENTIALMANILA-MAIN/pages/user/user-profile.php">Account Profile</a>
+                <a href="../user/user-profile.php">Account Profile</a>
             </div>
         </div>
 
@@ -277,23 +277,18 @@ foreach ($reports as $reportRow) {
                             <span class="post-description"><?php echo escape_html((string) ($report['description'] ?? '')); ?></span>
                         </div>
 
+                        <?php if ($mediaItems !== []): ?>
                         <div class="post-media-carousel">
                             <div class="carousel-container">
-                                <?php if ($mediaItems === []): ?>
+                                <?php foreach ($mediaItems as $media): ?>
                                     <div class="carousel-slide">
-                                        <img src="../../assets/report_media/media1-1.jfif" alt="No media attached">
+                                        <?php if (($media['file_type'] ?? 'photo') === 'video'): ?>
+                                            <video src="../../<?php echo escape_html((string) $media['file_url']); ?>" controls muted playsinline></video>
+                                        <?php else: ?>
+                                            <img src="../../<?php echo escape_html((string) $media['file_url']); ?>" alt="Report attachment">
+                                        <?php endif; ?>
                                     </div>
-                                <?php else: ?>
-                                    <?php foreach ($mediaItems as $media): ?>
-                                        <div class="carousel-slide">
-                                            <?php if (($media['file_type'] ?? 'photo') === 'video'): ?>
-                                                <video src="../../<?php echo escape_html((string) $media['file_url']); ?>" controls muted playsinline></video>
-                                            <?php else: ?>
-                                                <img src="../../<?php echo escape_html((string) $media['file_url']); ?>" alt="Report attachment">
-                                            <?php endif; ?>
-                                        </div>
-                                    <?php endforeach; ?>
-                                <?php endif; ?>
+                                <?php endforeach; ?>
                             </div>
 
                             <?php if (count($mediaItems) > 1): ?>
@@ -305,6 +300,7 @@ foreach ($reports as $reportRow) {
                                 </button>
                             <?php endif; ?>
                         </div>
+                        <?php endif; ?>
 
                         <div class="post-buttons">
                             <div class="post-buttons-left">

@@ -90,7 +90,7 @@ try {
             <span class="sidebar-title">GENERAL</span>
             <div class="sidebar-options">
                 <a href="official-home.php">Review Queue</a>
-                <a href="#">Account Profile</a>
+                <a href="../user/user-profile.php">Account Profile</a>
             </div>
         </div>
 

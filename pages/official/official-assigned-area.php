@@ -145,7 +145,7 @@ foreach ($threadsInArea as $threadRow) {
             <span class="sidebar-title">GENERAL</span>
             <div class="sidebar-options">
                 <a href="official-home.php">Review Queue</a>
-                <a href="/IT-PROG-LISSENTIALMANILA-MAIN/pages/user/user-profile.php">Account Profile</a>
+                <a href="../user/user-profile.php">Account Profile</a>
             </div>
         </div>
 
@@ -244,6 +244,30 @@ foreach ($threadsInArea as $threadRow) {
                                 <h2><span class="post-title"><?php echo escape_html((string) ($report['title'] ?? 'Untitled report')); ?></span></h2>
                                 <span class="post-description"><?php echo escape_html((string) ($report['description'] ?? '')); ?></span>
                             </div>
+                            <?php if ($mediaItems !== []): ?>
+                            <div class="post-media-carousel">
+                                <div class="carousel-container">
+                                    <?php foreach ($mediaItems as $media): ?>
+                                        <div class="carousel-slide">
+                                            <?php if (($media['file_type'] ?? 'photo') === 'video'): ?>
+                                                <video src="../../<?php echo escape_html((string) $media['file_url']); ?>" controls muted playsinline></video>
+                                            <?php else: ?>
+                                                <img src="../../<?php echo escape_html((string) $media['file_url']); ?>" alt="Report attachment">
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+
+                                <?php if (count($mediaItems) > 1): ?>
+                                    <button class="carousel-btn prev" aria-label="Previous slide" onclick="moveCarousel(this, -1)">
+                                        <i class="fa-solid fa-chevron-left"></i>
+                                    </button>
+                                    <button class="carousel-btn next" aria-label="Next slide" onclick="moveCarousel(this, 1)">
+                                        <i class="fa-solid fa-chevron-right"></i>
+                                    </button>
+                                <?php endif; ?>
+                            </div>
+                            <?php endif; ?>
                             <div class="post-buttons">
                                 <div class="post-buttons-left"></div>
                                 <div class="post-buttons-right">

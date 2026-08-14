@@ -146,7 +146,7 @@ function activity_icon_for_action(string $action): string
         <div class="sidebar-options-wrapper">
             <span class="sidebar-title">GENERAL</span>
             <div class="sidebar-options">
-                <a href="/IT-PROG-LISSENTIALMANILA-MAIN/pages/user/user-profile.php">Account Profile</a>
+                <a href="../user/user-profile.php">Account Profile</a>
             </div>
         </div>
 

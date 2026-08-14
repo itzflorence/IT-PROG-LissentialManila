@@ -110,7 +110,7 @@ try {
         <div class="sidebar-options-wrapper">
             <span class="sidebar-title">GENERAL</span>
             <div class="sidebar-options">
-                <a href="/IT-PROG-LISSENTIALMANILA-MAIN/pages/user/user-profile.php">Account Profile</a>
+                <a href="../user/user-profile.php">Account Profile</a>
             </div>
         </div>
 

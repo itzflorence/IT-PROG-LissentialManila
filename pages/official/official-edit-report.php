@@ -168,7 +168,7 @@ if (is_array($report)) {
             <span class="sidebar-title">GENERAL</span>
             <div class="sidebar-options">
                 <a href="official-home.php">Review Queue</a>
-                <a href="/IT-PROG-LISSENTIALMANILA-MAIN/pages/user/user-profile.php">Account Profile</a>
+                <a href="../user/user-profile.php">Account Profile</a>
             </div>
         </div>
 
@@ -273,23 +273,18 @@ if (is_array($report)) {
                     </div>
                 </div>
 
+                <?php if ($mediaItems !== []): ?>
                 <div class="report-media-preview">
                     <div class="carousel-container">
-                        <?php if ($mediaItems === []): ?>
+                        <?php foreach ($mediaItems as $media): ?>
                             <div class="carousel-slide">
-                                <img src="../../assets/report_media/media1-1.jfif" alt="No media attached">
+                                <?php if (($media['file_type'] ?? 'photo') === 'video'): ?>
+                                    <video src="../../<?php echo escape_html((string) $media['file_url']); ?>" controls muted playsinline></video>
+                                <?php else: ?>
+                                    <img src="../../<?php echo escape_html((string) $media['file_url']); ?>" alt="Report attachment">
+                                <?php endif; ?>
                             </div>
-                        <?php else: ?>
-                            <?php foreach ($mediaItems as $media): ?>
-                                <div class="carousel-slide">
-                                    <?php if (($media['file_type'] ?? 'photo') === 'video'): ?>
-                                        <video src="../../<?php echo escape_html((string) $media['file_url']); ?>" controls muted playsinline></video>
-                                    <?php else: ?>
-                                        <img src="../../<?php echo escape_html((string) $media['file_url']); ?>" alt="Report attachment">
-                                    <?php endif; ?>
-                                </div>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
+                        <?php endforeach; ?>
                     </div>
 
                     <?php if (count($mediaItems) > 1): ?>
@@ -301,6 +296,7 @@ if (is_array($report)) {
                         </button>
                     <?php endif; ?>
                 </div>
+                <?php endif; ?>
 
                 <div class="reporter-summary">
                     <div class="reporter-summary-item">
