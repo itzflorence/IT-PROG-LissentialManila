@@ -30,10 +30,12 @@ exit;
                 </a>
             </div>
 
-            <div class="searchbar">
-                <input type="search" placeholder="Search for a report...">
-                <i class="fa-solid fa-magnifying-glass"></i>
-            </div>
+            <form class="searchbar" action="user-search-results.php" method="GET">
+                <input type="search" name="q" placeholder="Search by title or location..." required>
+                <button type="submit" class="search-btn" aria-label="Submit search">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
+            </form>
 
             <div class="icon-button-wrapper">
                 <button type="button" class="icon-button notif-bell-btn" id="notifBellBtn" data-notif-api="../../includes/notifications-api.php" aria-haspopup="true" aria-expanded="false" aria-label="Notifications">

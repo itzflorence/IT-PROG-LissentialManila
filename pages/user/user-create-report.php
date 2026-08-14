@@ -69,8 +69,9 @@ try {
 
         <form class="searchbar" action="user-search-results.php" method="GET">
             <input type="search" name="q" placeholder="Search by title or location..." required>
-            <button type="submit" style="display: none;"></button>
-            <i class="fa-solid fa-magnifying-glass"></i>
+            <button type="submit" class="search-btn" aria-label="Submit search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </button>
         </form>
 
         <?php if ($isAuthenticated): ?>

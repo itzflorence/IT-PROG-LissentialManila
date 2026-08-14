@@ -327,10 +327,12 @@ if (is_array($report)) {
                 </a>
             </div>
 
-            <div class="searchbar">
-                <input type="search" placeholder="Search for a report...">
-                <i class="fa-solid fa-magnifying-glass"></i>
-            </div>
+            <form class="searchbar" action="user-search-results.php" method="GET">
+                <input type="search" name="q" placeholder="Search by title or location..." required>
+                <button type="submit" class="search-btn" aria-label="Submit search">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
+            </form>
 
             <?php if ($isAuthenticated): ?>
             <div class="auth-state-pill auth-state-pill--user">
