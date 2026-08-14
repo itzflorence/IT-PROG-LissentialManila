@@ -1,5 +1,9 @@
 <?php
 /** @var array<string, mixed> $thread */
+
+$threadCardBasePath = $threadCardBasePath ?? '';
+$threadCardEditUrl = $threadCardEditUrl ?? null;
+
 $reportCount = (int) ($thread['actual_report_count'] ?? $thread['total_reports'] ?? 0);
 $status = (string) ($thread['status'] ?? 'Active');
 $statusClass = strtolower($status);
@@ -30,8 +34,15 @@ $description = trim((string) ($thread['description'] ?? ''));
             <span><strong><?= $reportCount ?></strong> linked report<?= $reportCount === 1 ? '' : 's' ?></span>
             <span><strong><?= (int) ($thread['verified_reports'] ?? 0) ?></strong> verified</span>
         </div>
-        <a class="thread-card__button" href="thread-details.php?id=<?= (int) $thread['thread_id'] ?>">
-            View Thread <i class="fa-solid fa-arrow-right"></i>
-        </a>
+        <div style="display:flex; gap:8px;">
+            <?php if ($threadCardEditUrl !== null): ?>
+                <a class="thread-card__button" style="background: var(--color3); color: var(--colorText);" href="<?= thread_escape($threadCardEditUrl) ?>">
+                    <i class="fa-solid fa-pen-to-square"></i> Edit
+                </a>
+            <?php endif; ?>
+            <a class="thread-card__button" href="<?= thread_escape($threadCardBasePath) ?>thread-details.php?id=<?= (int) $thread['thread_id'] ?>">
+                View Thread <i class="fa-solid fa-arrow-right"></i>
+            </a>
+        </div>
     </div>
 </article>
