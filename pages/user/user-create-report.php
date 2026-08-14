@@ -6,21 +6,16 @@ require_once __DIR__ . '/../../includes/thread-query.php';
 require_once __DIR__ . '/../../includes/report-feed.php';
 require_once __DIR__ . '/../../includes/official-query.php';
 
-// HTML-escape helper for safe output inside templates
 function escape_html(?string $value): string {
     return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
 }
 
-// Block this page unless the visitor is authenticated
 require_login('../auth/login.php');
 
-// Current auth/session state used by the shared navbar/sidebar
 $isAuthenticated = is_authenticated();
-
-$username = $_SESSION['username'] ?? null;
+$username = $_SESSION['username'] ?? null;  
 $safeUsername = escape_html((string) ($username ?? ''));
 
-// Centralized navigation targets so links stay consistent across user pages
 $loginUrl = '../auth/login.php';
 $logoutUrl = '../auth/logout.php';
 $registerUrl = '../auth/register.php';
@@ -30,23 +25,10 @@ $allThreadsUrl = $isAuthenticated ? 'user-threads.php' : $loginUrl;
 $activeThreadsUrl = $isAuthenticated ? 'user-active-threads.php' : $loginUrl;
 $resolvedThreadsUrl = $isAuthenticated ? 'user-resolved-threads.php' : $loginUrl;
 
-// Sidebar category links can preserve a valid report status filter
-$allowedStatuses = ['Pending', 'Verified', 'Resolved', 'Rejected'];
+$errorFlag = trim((string) ($_GET['error'] ?? ''));
 $selectedStatus = trim((string) ($_GET['status'] ?? ''));
-if (!in_array($selectedStatus, $allowedStatuses, true)) {
-    $selectedStatus = '';
-}
+$selectedCategoryId = filter_input(INPUT_GET, 'category', FILTER_VALIDATE_INT);
 
-// Optional category filter used to highlight the active category link
-$selectedCategoryId = filter_input(
-    INPUT_GET,
-    'category',
-    FILTER_VALIDATE_INT,
-    ['options' => ['min_range' => 1]]
-);
-$selectedCategoryId = $selectedCategoryId === false ? null : $selectedCategoryId;
-
-// Category list powers the dynamic sidebar categories section
 $categories = [];
 $locationsGrouped = [];
 $errorMessage = trim((string) ($_GET['error'] ?? ''));
@@ -58,29 +40,25 @@ try {
     $locationsGrouped = official_fetch_locations_grouped($db);
 } catch (Throwable $error) {
     $categories = [];
+    $locationsGrouped = [];
 }
 ?>
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Report - LissentialManila</title>
-
     <link rel="stylesheet" href="../../style/shared/global.css">
     <link rel="stylesheet" href="../../style/shared/navbar.css">
-
     <link rel="stylesheet" href="../../style/user/home.css">
     <link rel="stylesheet" href="../../style/user/create-report.css">
-
+    <link rel="stylesheet" href="../../style/official/official.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
           integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
           crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
-
 <body>
-<!----------------------------------- NAVIGATION BAR & SIDEBAR ----------------------------------->
 <nav>
     <header class="navbar">
         <div class="navbar-logo">
@@ -89,15 +67,16 @@ try {
             </a>
         </div>
 
-        <div class="searchbar">
-            <input type="search" placeholder="Search for a report...">
+        <form class="searchbar" action="user-search-results.php" method="GET">
+            <input type="search" name="q" placeholder="Search by title or location..." required>
+            <button type="submit" style="display: none;"></button>
             <i class="fa-solid fa-magnifying-glass"></i>
-        </div>
+        </form>
 
         <?php if ($isAuthenticated): ?>
-        <div class="auth-state-pill auth-state-pill--user">
-            Logged in as <?php echo $safeUsername; ?>
-        </div>
+            <div class="auth-state-pill auth-state-pill--user">
+                Logged in as <?php echo $safeUsername; ?>
+            </div>
         <?php endif; ?>
 
         <?php if ($isAuthenticated): ?>
@@ -124,19 +103,13 @@ try {
             </div>
         </div>
         <?php else: ?>
-        <div class="login-button">
-            <button type="button" onclick="window.location.href='<?php echo $loginUrl; ?>'">LOG IN</button>
-        </div>
+            <div class="login-button">
+                <button type="button" onclick="window.location.href='<?php echo $loginUrl; ?>'">LOG IN</button>
+            </div>
         <?php endif; ?>
     </header>
 
     <aside class="sidebar">
-        <?php if (!$isAuthenticated): ?>
-        <div class="sidebar-options-wrapper">
-            <span class="sidebar-title sidebar-intro">Join the Anti-Kamote Gang and create an account for LissentialManila!</span>
-        </div>
-        <?php endif; ?>
-
         <div class="create-report">
             <button type="button" onclick="window.location.href='<?php echo $createReportUrl; ?>'">
                 <?php echo $isAuthenticated ? 'CREATE REPORT' : 'CREATE ACCOUNT'; ?>
@@ -162,51 +135,26 @@ try {
                 <a href="user-my-comments.php">My Comments</a>
                 <a href="/IT-PROG-LISSENTIALMANILA-MAIN/pages/user/user-profile.php">Account Profile</a>
             </div>
-            <hr>
-        </div>
         <?php endif; ?>
 
         <div class="sidebar-options-wrapper">
             <span class="sidebar-title">CATEGORIES</span>
             <div class="sidebar-options">
-                <a
-                    href="<?php echo escape_html(build_filter_url('../../index.php', $selectedStatus !== '' ? $selectedStatus : null, null)); ?>"
-                    class="sidebar-filter-link<?php echo $selectedCategoryId === null ? ' is-active' : ''; ?>"
-                >
-                    All Categories
-                </a>
+                <a href="../../index.php" class="sidebar-filter-link">All Categories</a>
                 <?php foreach ($categories as $category): ?>
-                    <?php $categoryId = (int) ($category['category_id'] ?? 0); ?>
-                    <a
-                        href="<?php echo escape_html(build_filter_url('../../index.php', $selectedStatus !== '' ? $selectedStatus : null, $categoryId)); ?>"
-                        class="sidebar-filter-link<?php echo $selectedCategoryId === $categoryId ? ' is-active' : ''; ?>"
-                    >
-                        <?php echo escape_html((string) ($category['category_name'] ?? '')); ?>
+                    <a href="../../index.php?category=<?php echo $category['category_id']; ?>" class="sidebar-filter-link">
+                        <?php echo escape_html($category['category_name']); ?>
                     </a>
                 <?php endforeach; ?>
             </div>
             <hr>
         </div>
 
-        <div class="sidebar-options-wrapper">
-            <span class="sidebar-title">THREADS</span>
-            <div class="sidebar-options">
-                <a href="<?php echo $allThreadsUrl; ?>">All</a>
-                <a href="<?php echo $activeThreadsUrl; ?>">Active</a>
-                <a href="<?php echo $resolvedThreadsUrl; ?>">Resolved</a>
-            </div>
-        </div>
-
         <span class="copyright-footer">IT-PROG © 2026. All rights reserved.</span>
     </aside>
 </nav>
 
-<!--====== THREADS / RIGHT PANEL ======-->
-<aside class="threads-wrapper">
-</aside>
-
-<!--====== CREATE REPORT FORM ======-->
-<div class="main-wrapper">
+<div class="main-wrapper" style="margin-right: 0;">
     <main>
         <form class="create-report-container" action="user-report-process.php" method="POST" enctype="multipart/form-data">
             <input type="hidden" name="action" value="create">
@@ -215,6 +163,7 @@ try {
                 <p class="form-error"><?php echo escape_html($errorMessage); ?></p>
             <?php endif; ?>
 
+        <form id="report-form" class="create-report-container" action="user-report-process.php" method="POST" enctype="multipart/form-data">
             <div class="form-header">
                 <input type="text" name="title" class="input-report-title" placeholder="Report Title*" maxlength="255" required>
                 <input type="text" name="description" class="input-report-desc" placeholder="Description (optional, required for 'Other')">
@@ -261,7 +210,6 @@ try {
             <div class="form-submit-wrapper">
                 <button type="submit" class="btn-post-report">Post Report</button>
             </div>
-
         </form>
     </main>
 </div>
@@ -288,4 +236,28 @@ try {
 <script src="../shared-js/navbar-user-menu.js" defer></script>
 </body>
 
+<script>
+    const fileInput = document.getElementById('media-file-input');
+    const textSpan = document.querySelector('.upload-text');
+
+    fileInput.addEventListener('change', function(e) {
+        const fileCount = e.target.files.length;
+        if (fileCount > 0) {
+            textSpan.textContent = fileCount + ' file(s) selected';
+            textSpan.style.color = '#34622f';
+        } else {
+            textSpan.textContent = 'Upload Media';
+            textSpan.style.color = '#d1d5db';
+        }
+    });
+
+    document.getElementById('report-form').addEventListener('submit', function(e) {
+        if (fileInput.files.length === 0) {
+            e.preventDefault();
+            alert('Please attach at least one photo or video to your report.');
+            textSpan.style.color = 'var(--colorRed)';
+        }
+    });
+</script>
+</body>
 </html>

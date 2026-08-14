@@ -22,6 +22,9 @@ $myReportsUrl = $isAuthenticated ? 'user-my-reports.php' : $loginUrl;
 $allThreadsUrl = $isAuthenticated ? 'user-threads.php' : $loginUrl;
 $activeThreadsUrl = $isAuthenticated ? 'user-active-threads.php' : $loginUrl;
 $resolvedThreadsUrl = $isAuthenticated ? 'user-resolved-threads.php' : $loginUrl;
+$archivedThreadsUrl = $isAuthenticated ? 'user-archived-threads.php' : $loginUrl;
+$nearMeUrl = $isAuthenticated ? 'user-reports-near-me.php' : $loginUrl;
+$profileUrl = $isAuthenticated ? 'user-profile.php' : $loginUrl;
 
 // Sidebar category links can preserve a valid report status filter
 $allowedStatuses = ['Pending', 'Verified', 'Resolved', 'Rejected'];
@@ -190,6 +193,7 @@ if (!$threadId || $threadId < 1) {
                 <a href="<?= thread_escape($allThreadsUrl) ?>">All</a>
                 <a href="<?= thread_escape($activeThreadsUrl) ?>">Active</a>
                 <a href="<?= thread_escape($resolvedThreadsUrl) ?>">Resolved</a>
+                <a href="<?= thread_escape($archivedThreadsUrl) ?>">Archived</a>
             </div>
         </div>
 

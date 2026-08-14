@@ -28,7 +28,7 @@ $savedLocationsUrl = $isAuthenticated ? 'pages/user/user-saved-locations.php' : 
 $myCommentsUrl = $isAuthenticated ? 'pages/user/user-my-comments.php' : $loginUrl;
 $activeThreadsUrl = $isAuthenticated ? 'pages/user/user-active-threads.php' : $loginUrl;
 $resolvedThreadsUrl = $isAuthenticated ? 'pages/user/user-resolved-threads.php' : $loginUrl;
-$archivedThreadsUrl = $isAuthenticated ? 'pages/user/user-threads.php?status=Archived' : $loginUrl;
+$archivedThreadsUrl = $isAuthenticated ? 'pages/user/user-archived-threads.php' : $loginUrl;
 
 $allowedStatuses = ['Pending', 'Verified', 'Resolved', 'Rejected'];
 $selectedStatus = trim((string) ($_GET['status'] ?? ''));
