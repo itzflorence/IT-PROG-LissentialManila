@@ -16,13 +16,11 @@ $logoutUrl = '../auth/logout.php';
 
 $search = trim((string) ($_GET['q'] ?? ''));
 $threads = [];
-$counts = ['all' => 0, 'Active' => 0, 'Resolved' => 0, 'Archived' => 0];
 $errorMessage = null;
 
 try {
     $db = thread_db();
     $threads = thread_fetch_all($db, 'Archived', $search);
-    $counts = thread_status_counts($db);
 } catch (Throwable $error) {
     $errorMessage = $error->getMessage();
 }
@@ -80,9 +78,9 @@ try {
         <div class="sidebar-options-wrapper">
             <span class="sidebar-title">INCIDENT THREADS</span>
             <div class="sidebar-options">
-                <a href="../user/user-threads.php">All</a>
-                <a href="../user/user-active-threads.php">Active</a>
-                <a href="../user/user-resolved-threads.php">Resolved</a>
+                <a href="official-threads.php">All</a>
+                <a href="official-active-threads.php">Active</a>
+                <a href="official-resolved-threads.php">Resolved</a>
                 <a href="official-archived-threads.php" class="is-active">Archived</a>
             </div>
             <hr>
@@ -91,7 +89,7 @@ try {
         <div class="sidebar-options-wrapper">
             <span class="sidebar-title">GENERAL</span>
             <div class="sidebar-options">
-                <a href="../../index.php">Back to Feed</a>
+                <a href="official-home.php">Review Queue</a>
                 <a href="#">Account Profile</a>
             </div>
         </div>
@@ -106,7 +104,7 @@ try {
             <div>
                 <p class="threads-eyebrow">INCIDENT THREADS</p>
                 <h1>Archived Threads</h1>
-                <p>Closed-out incidents kept for reference and historical lookup.</p>
+                <p>Archived incidents kept for reference and historical lookup. Click any thread to edit it.</p>
             </div>
             <div class="threads-hero__count">
                 <strong><?= count($threads) ?></strong>
@@ -115,9 +113,9 @@ try {
         </section>
 
         <nav class="thread-tabs" aria-label="Thread status filters">
-            <a href="../user/user-threads.php">All</a>
-            <a href="../user/user-active-threads.php">Active</a>
-            <a href="../user/user-resolved-threads.php">Resolved</a>
+            <a href="official-threads.php">All</a>
+            <a href="official-active-threads.php">Active</a>
+            <a href="official-resolved-threads.php">Resolved</a>
             <a class="is-active" href="official-archived-threads.php">Archived</a>
         </nav>
 

@@ -120,9 +120,9 @@ foreach ($threadsInArea as $threadRow) {
         <div class="sidebar-options-wrapper">
             <span class="sidebar-title">INCIDENT THREADS</span>
             <div class="sidebar-options">
-                <a href="../user/user-threads.php">All</a>
-                <a href="../user/user-active-threads.php">Active</a>
-                <a href="../user/user-resolved-threads.php">Resolved</a>
+                <a href="official-threads.php">All</a>
+                <a href="official-active-threads.php">Active</a>
+                <a href="official-resolved-threads.php">Resolved</a>
                 <a href="official-archived-threads.php">Archived</a>
             </div>
             <hr>
@@ -131,7 +131,7 @@ foreach ($threadsInArea as $threadRow) {
         <div class="sidebar-options-wrapper">
             <span class="sidebar-title">GENERAL</span>
             <div class="sidebar-options">
-                <a href="../../index.php">Back to Feed</a>
+                <a href="official-home.php">Review Queue</a>
                 <a href="/IT-PROG-LISSENTIALMANILA-MAIN/pages/user/user-profile.php">Account Profile</a>
             </div>
         </div>

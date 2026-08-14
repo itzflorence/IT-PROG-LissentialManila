@@ -98,9 +98,9 @@ $allowedThreadStatuses = ['Active', 'Resolved', 'Archived'];
         <div class="sidebar-options-wrapper">
             <span class="sidebar-title">INCIDENT THREADS</span>
             <div class="sidebar-options">
-                <a href="../user/user-threads.php">All</a>
-                <a href="../user/user-active-threads.php">Active</a>
-                <a href="../user/user-resolved-threads.php">Resolved</a>
+                <a href="official-threads.php">All</a>
+                <a href="official-active-threads.php">Active</a>
+                <a href="official-resolved-threads.php">Resolved</a>
                 <a href="official-archived-threads.php">Archived</a>
             </div>
             <hr>
@@ -109,7 +109,7 @@ $allowedThreadStatuses = ['Active', 'Resolved', 'Archived'];
         <div class="sidebar-options-wrapper">
             <span class="sidebar-title">GENERAL</span>
             <div class="sidebar-options">
-                <a href="../../index.php">Back to Feed</a>
+                <a href="official-home.php">Review Queue</a>
                 <a href="#">Account Profile</a>
             </div>
         </div>
@@ -180,7 +180,7 @@ $allowedThreadStatuses = ['Active', 'Resolved', 'Archived'];
                             </select>
                             <small>
                                 Setting <strong>Resolved</strong> marks every linked report as Resolved too.
-                                Archiving only changes this thread — linked reports keep their own status,
+                                Archiving only changes this thread. linked reports keep their own status,
                                 since a report record has no "Archived" state.
                             </small>
                         </div>
@@ -188,9 +188,9 @@ $allowedThreadStatuses = ['Active', 'Resolved', 'Archived'];
                         <div class="verification-field">
                             <label>Location &amp; Category</label>
                             <div style="padding: var(--space-small) 0; color: var(--color4); font-size: var(--font-small);">
-                                <?= thread_escape(thread_location_label($thread)) ?> · <?= thread_escape($thread['category_name']) ?>
+                                <?= thread_escape(thread_location_label($thread)) ?> &middot; <?= thread_escape($thread['category_name']) ?>
                             </div>
-                            <small>Not editable here — reassign individual reports from Edit Report instead.</small>
+                            <small>Not editable here. Reassign individual reports from Edit Report instead.</small>
                         </div>
 
                         <div class="verification-field verification-field--full">
