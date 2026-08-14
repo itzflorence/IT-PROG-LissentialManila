@@ -67,6 +67,8 @@ $comments = [];
 $errorMessage = null;
 $commentError = null;
 $commentDraft = '';
+$hasUpvoted = false;
+$hasResolved = false;
 
 if ($reportId === null) {
     http_response_code(400);
@@ -183,6 +185,7 @@ if ($reportId === null) {
                 r.status,
                 r.upvote_count,
                 r.comment_count,
+                r.resolved_count,
                 r.verified_by,
                 r.created_at,
                 u.username,
@@ -209,8 +212,8 @@ if ($reportId === null) {
             http_response_code(404);
             $errorMessage = 'The report you requested does not exist.';
         } else {
-            // Report media (images/videos) for the carousel
-            $mediaStatement = $db->prepare('SELECT file_url, file_type FROM media_attachments WHERE report_id = ? ORDER BY media_id ASC');
+            // Report media (images/videos) for the carousel, capped at REPORT_MEDIA_DISPLAY_LIMIT
+            $mediaStatement = $db->prepare('SELECT file_url, file_type FROM media_attachments WHERE report_id = ? ORDER BY media_id ASC LIMIT ' . REPORT_MEDIA_DISPLAY_LIMIT);
             $mediaStatement->bind_param('i', $reportId);
             $mediaStatement->execute();
 
@@ -220,6 +223,19 @@ if ($reportId === null) {
                     'file_url' => normalize_media_url((string) ($row['file_url'] ?? '')),
                     'file_type' => strtolower((string) ($row['file_type'] ?? 'photo')),
                 ];
+            }
+
+            // Whether the current viewer has already upvoted/marked this report resolved
+            if ($currentUserId !== null) {
+                $upvotedStatement = $db->prepare('SELECT 1 FROM upvotes WHERE user_id = ? AND report_id = ? LIMIT 1');
+                $upvotedStatement->bind_param('ii', $currentUserId, $reportId);
+                $upvotedStatement->execute();
+                $hasUpvoted = (bool) $upvotedStatement->get_result()->fetch_row();
+
+                $resolvedStatement = $db->prepare('SELECT 1 FROM resolved_marks WHERE user_id = ? AND report_id = ? LIMIT 1');
+                $resolvedStatement->bind_param('ii', $currentUserId, $reportId);
+                $resolvedStatement->execute();
+                $hasResolved = (bool) $resolvedStatement->get_result()->fetch_row();
             }
 
             // Comment thread for the right-side panel
@@ -299,6 +315,7 @@ if (is_array($report)) {
     <link rel="stylesheet" href="../../style/shared/post.css">
 
     <script src="../shared-js/media-carousel.js" defer></script>
+    <script src="../shared-js/report-actions.js" defer></script>
 </head>
 
 <body>
@@ -323,13 +340,26 @@ if (is_array($report)) {
 
             <?php if ($isAuthenticated): ?>
             <div class="icon-button-wrapper">
-                <button type="button" class="icon-button">
+                <button type="button" class="icon-button notif-bell-btn" id="notifBellBtn" data-notif-api="../../includes/notifications-api.php" aria-haspopup="true" aria-expanded="false" aria-label="Notifications">
                     <i class="fa-solid fa-bell"></i>
                 </button>
+                <div class="notification-panel" id="notifPanel" hidden>
+                    <div class="notification-panel-header">Nearby Alerts</div>
+                    <div class="notification-panel-body" id="notifPanelBody"></div>
+                </div>
 
-                <button type="button" class="icon-button" title="Log out" onclick="window.location.href='<?php echo $logoutUrl; ?>'">
+                <button type="button" class="icon-button user-menu-btn" id="userMenuBtn" aria-haspopup="true" aria-expanded="false" aria-label="Account menu">
                     <i class="fa-solid fa-user"></i>
                 </button>
+                <div class="user-menu-panel" id="userMenuPanel" hidden>
+                    <div class="user-menu-info">
+                        <span class="user-menu-name"><?php echo htmlspecialchars((string) ($_SESSION['full_name'] ?? ''), ENT_QUOTES, 'UTF-8') ?: $safeUsername; ?></span>
+                        <span class="user-menu-username">@<?php echo $safeUsername; ?></span>
+                    </div>
+                    <a class="user-menu-logout" href="<?php echo $logoutUrl; ?>">
+                        <i class="fa-solid fa-right-from-bracket"></i> Log out
+                    </a>
+                </div>
             </div>
             <?php else: ?>
             <div class="login-button">
@@ -365,10 +395,10 @@ if (is_array($report)) {
                 <span class="sidebar-title">MY ACTIVITY</span>
                 <div class="sidebar-options">
                     <a href="<?php echo $myReportsUrl; ?>">My Reports</a>
-                    <a href="#">Reports Near Me</a>
-                    <a href="#">Saved Locations</a>
-                    <a href="#">My Comments</a>
-                    <a href="/IT-PROG-LISSENTIALMANILA-MAIN/pages/user/user-profile.php">Account Profile</a>
+                    <a href="user-reports-near-me.php">Reports Near Me</a>
+                    <a href="user-saved-locations.php">Saved Locations</a>
+                    <a href="user-my-comments.php">My Comments</a>
+                    <a href="user-profile.php">Account Profile</a>
                 </div>
                 <hr>
             </div>
@@ -473,7 +503,7 @@ if (is_array($report)) {
             <?php else: ?>
                 <section class="post">
                     <div class="profile-details">
-                        <div class="post-pfp"><img src="../../assets/user_images/user1.jpg" alt=""></div>
+                        <!-- <div class="post-pfp"><img src="../../assets/user_images/user1.jpg" alt=""></div> -->
                         <span class="username"><?php echo escape_html($displayUsername); ?></span>
                         <span>•</span>
                         <span class="hours-ago"><?php echo escape_html($timeLabel); ?></span>
@@ -532,17 +562,17 @@ if (is_array($report)) {
 
                     <div class="post-buttons">
                         <div class="post-buttons-left">
-                            <button type="button" class="post-upvote">
+                            <button type="button" class="post-upvote<?php echo $hasUpvoted ? ' is-active' : ''; ?>" data-report-action="upvote" data-report-id="<?php echo (int) $reportId; ?>" data-action-url="report-action.php" aria-pressed="<?php echo $hasUpvoted ? 'true' : 'false'; ?>">
                                 <i class="fa-solid fa-square-caret-up"></i>
                                 <span><?php echo (int) ($report['upvote_count'] ?? 0); ?></span>
                             </button>
-                            <button type="button" class="post-comment" onclick="window.location.href='#comments'">
+                            <button type="button" class="comment post-comment" onclick="window.location.href='#comments'">
                                 <i class="fa-solid fa-comment-dots"></i>
                                 <span><?php echo (int) ($report['comment_count'] ?? 0); ?></span>
                             </button>
-                            <button type="button" class="post-resolved">
+                            <button type="button" class="post-resolved<?php echo $hasResolved ? ' is-active' : ''; ?>" data-report-action="resolved" data-report-id="<?php echo (int) $reportId; ?>" data-action-url="report-action.php" aria-pressed="<?php echo $hasResolved ? 'true' : 'false'; ?>">
                                 <i class="fa-solid fa-circle-check"></i>
-                                <?php echo escape_html($status); ?>
+                                Resolved | <span><?php echo (int) ($report['resolved_count'] ?? 0); ?></span>
                             </button>
                         </div>
 
@@ -562,6 +592,8 @@ if (is_array($report)) {
             <?php endif; ?>
         </main>
     </div>
+<script src="../shared-js/notifications.js" defer></script>
+<script src="../shared-js/navbar-user-menu.js" defer></script>
 </body>
 
 </html>

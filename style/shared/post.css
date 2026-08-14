@@ -238,6 +238,11 @@
     transform: translateY(-0.5px);
 }
 
+.post-buttons-left button.is-active {
+    background-color: color-mix(in srgb, var(--color4) 50%, var(--colorComplement) );
+    box-shadow: rgba(17, 17, 26, 0.25) 0px 4px 6px inset;
+}
+
 .post-buttons-right .verified {
     background-color: color-mix(in srgb, var(--colorRed) 80%, var(--color1));
     color: var(--color1);

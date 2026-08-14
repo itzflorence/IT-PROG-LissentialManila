@@ -11,6 +11,9 @@ function escape_html(?string $value): string {
 
 $isAuthenticated = is_authenticated();
 
+$currentUserId = filter_var($_SESSION['user_id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+$currentUserId = $currentUserId === false ? null : $currentUserId;
+
 $username = $_SESSION['username'] ?? null;
 $safeUsername = escape_html((string) ($username ?? ''));
 
@@ -19,6 +22,9 @@ $logoutUrl = 'pages/auth/logout.php';
 $registerUrl = 'pages/auth/register.php';
 $createReportUrl = $isAuthenticated ? 'pages/user/user-create-report.php' : $registerUrl;
 $myReportsUrl = $isAuthenticated ? 'pages/user/user-my-reports.php' : $loginUrl;
+$reportsNearMeUrl = $isAuthenticated ? 'pages/user/user-reports-near-me.php' : $loginUrl;
+$savedLocationsUrl = $isAuthenticated ? 'pages/user/user-saved-locations.php' : $loginUrl;
+$myCommentsUrl = $isAuthenticated ? 'pages/user/user-my-comments.php' : $loginUrl;
 $activeThreadsUrl = $isAuthenticated ? 'pages/user/user-active-threads.php' : $loginUrl;
 $resolvedThreadsUrl = $isAuthenticated ? 'pages/user/user-resolved-threads.php' : $loginUrl;
 $archivedThreadsUrl = $isAuthenticated ? 'pages/user/user-threads.php?status=Archived' : $loginUrl;
@@ -40,14 +46,16 @@ $selectedCategoryId = $selectedCategoryId === false ? null : $selectedCategoryId
 $categories = [];
 $reports = [];
 $mediaByReport = [];
+$activeThreads = [];
 $reportLoadError = null;
 
 try {
     $db = thread_db();
     $categories = fetch_categories($db);
-    $reportData = fetch_reports_and_media($db, $selectedStatus, $selectedCategoryId);
+    $reportData = fetch_reports_and_media($db, $selectedStatus, $selectedCategoryId, $currentUserId);
     $reports = $reportData['reports'];
     $mediaByReport = $reportData['mediaByReport'];
+    $activeThreads = thread_fetch_all($db, 'Active', '');
 } catch (Throwable $error) {
     $reportLoadError = $error->getMessage();
 }
@@ -109,13 +117,26 @@ try {
 
             <?php if ($isAuthenticated): ?>
             <div class="icon-button-wrapper">
-                <button type="button" class="icon-button">
+                <button type="button" class="icon-button notif-bell-btn" id="notifBellBtn" data-notif-api="includes/notifications-api.php" aria-haspopup="true" aria-expanded="false" aria-label="Notifications">
                     <i class="fa-solid fa-bell"></i>
                 </button>
+                <div class="notification-panel" id="notifPanel" hidden>
+                    <div class="notification-panel-header">Nearby Alerts</div>
+                    <div class="notification-panel-body" id="notifPanelBody"></div>
+                </div>
 
-                <button type="button" class="icon-button" title="Log out" onclick="window.location.href='<?php echo $logoutUrl; ?>'">
+                <button type="button" class="icon-button user-menu-btn" id="userMenuBtn" aria-haspopup="true" aria-expanded="false" aria-label="Account menu">
                     <i class="fa-solid fa-user"></i>
                 </button>
+                <div class="user-menu-panel" id="userMenuPanel" hidden>
+                    <div class="user-menu-info">
+                        <span class="user-menu-name"><?php echo htmlspecialchars((string) ($_SESSION['full_name'] ?? ''), ENT_QUOTES, 'UTF-8') ?: $safeUsername; ?></span>
+                        <span class="user-menu-username">@<?php echo $safeUsername; ?></span>
+                    </div>
+                    <a class="user-menu-logout" href="<?php echo $logoutUrl; ?>">
+                        <i class="fa-solid fa-right-from-bracket"></i> Log out
+                    </a>
+                </div>
             </div>
             <?php else: ?>
             <div class="login-button">
@@ -151,10 +172,10 @@ try {
                 <span class="sidebar-title">MY ACTIVITY</span>
                 <div class="sidebar-options">
                     <a href="<?php echo $myReportsUrl; ?>">My Reports</a>
-                    <a href="#">Reports Near Me</a>
-                    <a href="#">Saved Locations</a>
-                    <a href="#">My Comments</a>
-                    <a href="/IT-PROG-LISSENTIALMANILA-MAIN/pages/user/user-profile.php">Account Profile</a>
+                    <a href="<?php echo $reportsNearMeUrl; ?>">Reports Near Me</a>
+                    <a href="<?php echo $savedLocationsUrl; ?>">Saved Locations</a>
+                    <a href="<?php echo $myCommentsUrl; ?>">My Comments</a>
+                    <a href="pages/user/user-profile.php">Account Profile</a>
                 </div>
                 <hr>
             </div>
@@ -196,7 +217,41 @@ try {
         </aside>
     </nav>
 
-    <aside class="threads-wrapper"></aside>
+    <aside class="threads-wrapper">
+        <div class="threads-wrapper__header">
+            <h2>Active Threads</h2>
+            <span class="threads-wrapper__count"><?php echo count($activeThreads); ?></span>
+        </div>
+        <div class="threads-wrapper__list">
+            <?php if ($activeThreads === []): ?>
+                <p class="threads-wrapper__empty">No active threads right now.</p>
+            <?php else: ?>
+                <?php foreach ($activeThreads as $thread): ?>
+                    <?php
+                    $threadId = (int) ($thread['thread_id'] ?? 0);
+                    $threadHref = $isAuthenticated ? 'pages/user/thread-details.php?id=' . $threadId : $loginUrl;
+                    $threadReportCount = (int) ($thread['actual_report_count'] ?? $thread['total_reports'] ?? 0);
+                    ?>
+                    <a class="threads-summary-item" href="<?php echo escape_html($threadHref); ?>"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
+                        <div class="threads-summary-item__top">
+                            <span class="threads-summary-item__status"><i class="fa-solid fa-circle"></i> Active</span>
+                            <span class="threads-summary-item__updated"><?php echo escape_html(thread_date_label($thread['updated_at'] ?? null)); ?></span>
+                        </div>
+                        <strong class="threads-summary-item__title"><?php echo escape_html((string) ($thread['title'] ?? 'Untitled incident')); ?></strong>
+                        <span class="threads-summary-item__meta">
+                            <i class="fa-solid fa-location-dot"></i> <?php echo escape_html(thread_location_label($thread)); ?>
+                        </span>
+                        <span class="threads-summary-item__meta">
+                            <i class="fa-solid fa-layer-group"></i> <?php echo escape_html((string) ($thread['category_name'] ?? 'Uncategorized')); ?> &middot; <?php echo $threadReportCount; ?> report<?php echo $threadReportCount === 1 ? '' : 's'; ?>
+                        </span>
+                    </a>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
+        <a class="threads-wrapper__viewall" href="<?php echo $activeThreadsUrl; ?>">
+            View all active threads <i class="fa-solid fa-arrow-right"></i>
+        </a>
+    </aside>
 
     <div class="main-wrapper">
         <main>
@@ -274,7 +329,7 @@ try {
                     <a href="<?php echo $isAuthenticated ? 'pages/user/user-report-details.php?id=' . $reportId : $loginUrl; ?>" class="post-link"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
                         <section class="post">
                             <div class="profile-details">
-                                <div class="post-pfp"><img src="assets/user_images/user1.jpg" alt=""></div>
+                                <!-- <div class="post-pfp"><img src="assets/user_images/user1.jpg" alt=""></div> -->
                                 <span class="username"><?php echo escape_html($displayUsername); ?></span>
                                 <span>•</span>
                                 <span class="hours-ago"><?php echo escape_html($timeLabel); ?></span>
@@ -334,17 +389,17 @@ try {
 
                             <div class="post-buttons">
                                 <div class="post-buttons-left">
-                                    <button type="button" class="post-upvote"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
+                                    <button type="button" class="post-upvote<?php echo !empty($report['has_upvoted']) ? ' is-active' : ''; ?>" data-report-action="upvote" data-report-id="<?php echo $reportId; ?>" data-action-url="pages/user/report-action.php" aria-pressed="<?php echo !empty($report['has_upvoted']) ? 'true' : 'false'; ?>"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
                                         <i class="fa-solid fa-square-caret-up"></i>
                                         <span><?php echo (int) ($report['upvote_count'] ?? 0); ?></span>
                                     </button>
-                                    <button type="button" class="post-comment"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
+                                    <button type="button" class="comment post-comment" data-report-details-url="pages/user/user-report-details.php?id=<?php echo $reportId; ?>#comments"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
                                         <i class="fa-solid fa-comment-dots"></i>
                                         <span><?php echo (int) ($report['comment_count'] ?? 0); ?></span>
                                     </button>
-                                    <button type="button" class="post-resolved"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
+                                    <button type="button" class="post-resolved<?php echo !empty($report['has_resolved']) ? ' is-active' : ''; ?>" data-report-action="resolved" data-report-id="<?php echo $reportId; ?>" data-action-url="pages/user/report-action.php" aria-pressed="<?php echo !empty($report['has_resolved']) ? 'true' : 'false'; ?>"<?php echo !$isAuthenticated ? ' data-login-required="true"' : ''; ?>>
                                         <i class="fa-solid fa-circle-check"></i>
-                                        <?php echo escape_html($status); ?> | <span><?php echo strcasecmp($status, 'Resolved') === 0 ? '1' : '0'; ?></span>
+                                        Resolved | <span><?php echo (int) ($report['resolved_count'] ?? 0); ?></span>
                                     </button>
                                 </div>
 
@@ -370,5 +425,8 @@ try {
             <?php endif; ?>
         </main>
     </div>
+    <script src="pages/shared-js/report-actions.js" defer></script>
+<script src="pages/shared-js/notifications.js" defer></script>
+<script src="pages/shared-js/navbar-user-menu.js" defer></script>
 </body>
 </html>

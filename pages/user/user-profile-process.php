@@ -49,7 +49,8 @@ try {
 
         profile_update_basic_info($db, $currentUserId, $firstName, $lastName, $email, $homeLocationId);
 
-        // Session username doesn't change here, but keep names fresh if displayed elsewhere.
+        // Session username doesn't change here, but keep the navbar's cached name fresh.
+        $_SESSION['full_name'] = trim($firstName . ' ' . $lastName);
         header('Location: ' . $redirectBase . '?success=info_updated');
         exit;
     }

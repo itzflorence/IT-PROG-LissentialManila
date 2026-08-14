@@ -131,6 +131,7 @@ CREATE TABLE reports (
     -- Engagement metrics
     upvote_count INT DEFAULT 0,
     comment_count INT DEFAULT 0,
+    resolved_count INT DEFAULT 0,
  
     -- Verification status
     status ENUM('Pending', 'Verified', 'Resolved', 'Rejected') NOT NULL DEFAULT 'Pending',
@@ -184,6 +185,20 @@ CREATE TABLE upvotes (
     
     -- Prevent duplicate upvotes: one user can only upvote a report once
     UNIQUE KEY unique_upvote (user_id, report_id),
+    
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (report_id) REFERENCES reports(report_id) ON DELETE CASCADE
+);
+
+-- RESOLVED_MARKS TABLE : Track which users marked which reports as resolved (junction table prevents duplicate marks)
+CREATE TABLE resolved_marks (
+    resolved_mark_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    report_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Prevent duplicate marks: one user can only mark a report resolved once
+    UNIQUE KEY unique_resolved_mark (user_id, report_id),
     
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (report_id) REFERENCES reports(report_id) ON DELETE CASCADE

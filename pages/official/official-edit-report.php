@@ -115,13 +115,26 @@ if (is_array($report)) {
         </div>
 
         <div class="icon-button-wrapper">
-            <button type="button" class="icon-button">
+            <button type="button" class="icon-button notif-bell-btn" id="notifBellBtn" data-notif-api="../../includes/notifications-api.php" aria-haspopup="true" aria-expanded="false" aria-label="Notifications">
                 <i class="fa-solid fa-bell"></i>
             </button>
+            <div class="notification-panel" id="notifPanel" hidden>
+                <div class="notification-panel-header">Nearby Alerts</div>
+                <div class="notification-panel-body" id="notifPanelBody"></div>
+            </div>
 
-            <button type="button" class="icon-button" title="Log out" onclick="window.location.href='<?php echo $logoutUrl; ?>'">
+            <button type="button" class="icon-button user-menu-btn" id="userMenuBtn" aria-haspopup="true" aria-expanded="false" aria-label="Account menu">
                 <i class="fa-solid fa-user"></i>
             </button>
+            <div class="user-menu-panel" id="userMenuPanel" hidden>
+                <div class="user-menu-info">
+                    <span class="user-menu-name"><?php echo htmlspecialchars((string) ($_SESSION['full_name'] ?? ''), ENT_QUOTES, 'UTF-8') ?: $safeUsername; ?></span>
+                    <span class="user-menu-username">@<?php echo $safeUsername; ?></span>
+                </div>
+                <a class="user-menu-logout" href="<?php echo $logoutUrl; ?>">
+                    <i class="fa-solid fa-right-from-bracket"></i> Log out
+                </a>
+            </div>
         </div>
     </header>
 
@@ -377,6 +390,8 @@ if (is_array($report)) {
         }
     });
 </script>
+<script src="../shared-js/notifications.js" defer></script>
+<script src="../shared-js/navbar-user-menu.js" defer></script>
 </body>
 
 </html>

@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $stmt = mysqli_prepare(
         $conn,
-        'SELECT user_id, username, password_hash, role
+        'SELECT user_id, username, password_hash, role, first_name, last_name
          FROM users
          WHERE (username = ? OR email = ?)
          AND is_deleted = FALSE
@@ -57,6 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['user_id'] = $user['user_id'];
             $_SESSION['username'] = $user['username'];
             $_SESSION['role'] = $user['role'];
+            $_SESSION['full_name'] = trim($user['first_name'] . ' ' . $user['last_name']);
 
             switch ($user['role']) {
                 case 'Admin':

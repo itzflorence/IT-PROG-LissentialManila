@@ -14,6 +14,9 @@ $currentUserId = filter_var($_SESSION['user_id'] ?? null, FILTER_VALIDATE_INT, [
 $currentUserId = $currentUserId === false ? null : $currentUserId;
 $role = current_role();
 
+$isAuthenticated = is_authenticated();
+$safeUsername = htmlspecialchars((string) ($_SESSION['username'] ?? ''), ENT_QUOTES, 'UTF-8');
+$loginUrl = '../auth/login.php';
 $logoutUrl = '../auth/logout.php';
 
 $successFlag = trim((string) ($_GET['success'] ?? ''));
@@ -82,18 +85,39 @@ $hasPendingPhone = $account !== null && !empty($account['pending_phone_number'])
             <i class="fa-solid fa-magnifying-glass"></i>
         </div>
 
+        <?php if ($isAuthenticated): ?>
         <div class="auth-state-pill auth-state-pill--user">
-            Logged in as <?= thread_escape((string) ($_SESSION['username'] ?? '')) ?> (<?= thread_escape((string) $role) ?>)
+            Logged in as <?= $safeUsername ?>
         </div>
+        <?php endif; ?>
 
+        <?php if ($isAuthenticated): ?>
         <div class="icon-button-wrapper">
-            <button type="button" class="icon-button">
+            <button type="button" class="icon-button notif-bell-btn" id="notifBellBtn" data-notif-api="../../includes/notifications-api.php" aria-haspopup="true" aria-expanded="false" aria-label="Notifications">
                 <i class="fa-solid fa-bell"></i>
             </button>
-            <button type="button" class="icon-button" title="Log out" onclick="window.location.href='<?= thread_escape($logoutUrl) ?>'">
+            <div class="notification-panel" id="notifPanel" hidden>
+                <div class="notification-panel-header">Nearby Alerts</div>
+                <div class="notification-panel-body" id="notifPanelBody"></div>
+            </div>
+            <button type="button" class="icon-button user-menu-btn" id="userMenuBtn" aria-haspopup="true" aria-expanded="false" aria-label="Account menu">
                 <i class="fa-solid fa-user"></i>
             </button>
+            <div class="user-menu-panel" id="userMenuPanel" hidden>
+                <div class="user-menu-info">
+                    <span class="user-menu-name"><?= htmlspecialchars((string) ($_SESSION['full_name'] ?? ''), ENT_QUOTES, 'UTF-8') ?: $safeUsername ?></span>
+                    <span class="user-menu-username">@<?= $safeUsername ?></span>
+                </div>
+                <a class="user-menu-logout" href="<?= thread_escape($logoutUrl) ?>">
+                    <i class="fa-solid fa-right-from-bracket"></i> Log out
+                </a>
+            </div>
         </div>
+        <?php else: ?>
+        <div class="login-button">
+            <button type="button" onclick="window.location.href='<?= $loginUrl ?>'">LOG IN</button>
+        </div>
+        <?php endif; ?>
     </header>
 
     <aside class="sidebar">
@@ -364,5 +388,7 @@ $hasPendingPhone = $account !== null && !empty($account['pending_phone_number'])
         </div>
     </main>
 </div>
+<script src="../shared-js/notifications.js" defer></script>
+<script src="../shared-js/navbar-user-menu.js" defer></script>
 </body>
 </html>

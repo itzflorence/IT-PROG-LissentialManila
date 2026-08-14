@@ -1,6 +1,12 @@
 @import url(../shared/global.css);
 @import url(../shared/navbar.css);
 
+.form-error {
+    color: var(--colorRed);
+    font-weight: 600;
+    font-size: var(--font-small);
+}
+
 /* FORM CONTAINER */
 .create-report-container {
     display: flex;

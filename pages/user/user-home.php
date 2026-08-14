@@ -36,9 +36,13 @@ exit;
             </div>
 
             <div class="icon-button-wrapper">
-                <button type="button" class="icon-button">
+                <button type="button" class="icon-button notif-bell-btn" id="notifBellBtn" data-notif-api="../../includes/notifications-api.php" aria-haspopup="true" aria-expanded="false" aria-label="Notifications">
                     <i class="fa-solid fa-bell"></i>
                 </button>
+                <div class="notification-panel" id="notifPanel" hidden>
+                    <div class="notification-panel-header">Nearby Alerts</div>
+                    <div class="notification-panel-body" id="notifPanelBody"></div>
+                </div>
 
                 <button type="button" class="icon-button">
                     <i class="fa-solid fa-user"></i>
@@ -527,6 +531,7 @@ exit;
             </a>
         </main>
     </div>
+<script src="../shared-js/notifications.js" defer></script>
 </body>
 
 </html>

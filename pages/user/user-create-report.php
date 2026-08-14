@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../../includes/auth.php';
 require_once __DIR__ . '/../../includes/thread-query.php';
 require_once __DIR__ . '/../../includes/report-feed.php';
+require_once __DIR__ . '/../../includes/official-query.php';
 
 // HTML-escape helper for safe output inside templates
 function escape_html(?string $value): string {
@@ -47,9 +48,14 @@ $selectedCategoryId = $selectedCategoryId === false ? null : $selectedCategoryId
 
 // Category list powers the dynamic sidebar categories section
 $categories = [];
+$locationsGrouped = [];
+$errorMessage = trim((string) ($_GET['error'] ?? ''));
+$errorMessage = $errorMessage !== '' ? $errorMessage : null;
+
 try {
     $db = thread_db();
     $categories = fetch_categories($db);
+    $locationsGrouped = official_fetch_locations_grouped($db);
 } catch (Throwable $error) {
     $categories = [];
 }
@@ -99,10 +105,23 @@ try {
             <button type="button" class="icon-button">
                 <i class="fa-solid fa-bell"></i>
             </button>
+            <div class="notification-panel" id="notifPanel" hidden>
+                <div class="notification-panel-header">Nearby Alerts</div>
+                <div class="notification-panel-body" id="notifPanelBody"></div>
+            </div>
 
-            <button type="button" class="icon-button" title="Log out" onclick="window.location.href='<?php echo $logoutUrl; ?>'">
+            <button type="button" class="icon-button user-menu-btn" id="userMenuBtn" aria-haspopup="true" aria-expanded="false" aria-label="Account menu">
                 <i class="fa-solid fa-user"></i>
             </button>
+            <div class="user-menu-panel" id="userMenuPanel" hidden>
+                <div class="user-menu-info">
+                    <span class="user-menu-name"><?php echo htmlspecialchars((string) ($_SESSION['full_name'] ?? ''), ENT_QUOTES, 'UTF-8') ?: $safeUsername; ?></span>
+                    <span class="user-menu-username">@<?php echo $safeUsername; ?></span>
+                </div>
+                <a class="user-menu-logout" href="<?php echo $logoutUrl; ?>">
+                    <i class="fa-solid fa-right-from-bracket"></i> Log out
+                </a>
+            </div>
         </div>
         <?php else: ?>
         <div class="login-button">
@@ -138,9 +157,9 @@ try {
             <span class="sidebar-title">MY ACTIVITY</span>
             <div class="sidebar-options">
                 <a href="<?php echo $myReportsUrl; ?>">My Reports</a>
-                <a href="#">Reports Near Me</a>
-                <a href="#">Saved Locations</a>
-                <a href="#">My Comments</a>
+                <a href="user-reports-near-me.php">Reports Near Me</a>
+                <a href="user-saved-locations.php">Saved Locations</a>
+                <a href="user-my-comments.php">My Comments</a>
                 <a href="/IT-PROG-LISSENTIALMANILA-MAIN/pages/user/user-profile.php">Account Profile</a>
             </div>
             <hr>
@@ -189,45 +208,53 @@ try {
 <!--====== CREATE REPORT FORM ======-->
 <div class="main-wrapper">
     <main>
-        <form class="create-report-container" action="#" method="POST" enctype="multipart/form-data">
+        <form class="create-report-container" action="user-report-process.php" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="action" value="create">
+
+            <?php if ($errorMessage !== null): ?>
+                <p class="form-error"><?php echo escape_html($errorMessage); ?></p>
+            <?php endif; ?>
 
             <div class="form-header">
-                <input type="text" class="input-report-title" placeholder="Report Title*" required>
-                <input type="text" class="input-report-desc" placeholder="Description (optional)">
+                <input type="text" name="title" class="input-report-title" placeholder="Report Title*" maxlength="255" required>
+                <input type="text" name="description" class="input-report-desc" placeholder="Description (optional, required for 'Other')">
             </div>
 
             <div class="form-meta-row">
                 <div class="meta-pill">
                     <label for="location-input">LOCATION:</label>
-                    <input type="text" id="location-input" placeholder="---" required>
+                    <select id="location-input" name="location_id" required>
+                        <option value="" disabled selected>---</option>
+                        <?php foreach ($locationsGrouped as $city => $districts): ?>
+                            <optgroup label="<?php echo escape_html((string) $city); ?>">
+                                <?php foreach ($districts as $district): ?>
+                                    <option value="<?php echo (int) $district['location_id']; ?>"><?php echo escape_html((string) $district['district']); ?></option>
+                                <?php endforeach; ?>
+                            </optgroup>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
 
                 <div class="meta-pill">
                     <i class="fa-solid fa-shapes category-icon"></i>
                     <label for="category-select">CATEGORY:</label>
-                    <select id="category-select" required>
+                    <select id="category-select" name="category_id" required>
                         <option value="" disabled selected>*dropdown*</option>
-                        <option value="Vehicle Accident">Vehicle Accident</option>
-                        <option value="Traffic Congestion">Traffic Congestion</option>
-                        <option value="Flooding">Flooding</option>
-                        <option value="Road Blockage">Road Blockage</option>
-                        <option value="Construction">Construction</option>
-                        <option value="Stalled Vehicle">Stalled Vehicle</option>
-                        <option value="Traffic Light">Traffic Light</option>
-                        <option value="Public Transport">Public Transport</option>
-                        <option value="Other">Other</option>
+                        <?php foreach ($categories as $category): ?>
+                            <option value="<?php echo (int) ($category['category_id'] ?? 0); ?>"><?php echo escape_html((string) ($category['category_name'] ?? '')); ?></option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
             </div>
 
             <div class="media-upload-area">
-                <input type="file" id="media-file-input" multiple accept="image/*,video/*" hidden>
+                <input type="file" id="media-file-input" name="media[]" multiple accept="image/*,video/*" hidden>
                 <label for="media-file-input" class="media-upload-label">
                     <div class="upload-icon-wrapper">
                         <i class="fa-solid fa-images"></i>
                         <i class="fa-solid fa-arrow-up upload-arrow"></i>
                     </div>
-                    <span class="upload-text">Upload Media</span>
+                    <span class="upload-text">Upload Media (up to 4 files)</span>
                 </label>
             </div>
 
@@ -238,6 +265,27 @@ try {
         </form>
     </main>
 </div>
+<script>
+    (() => {
+        const maxFiles = 4;
+        const fileInput = document.getElementById('media-file-input');
+        const uploadText = document.querySelector('.upload-text');
+
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length > maxFiles) {
+                const trimmed = new DataTransfer();
+                Array.from(fileInput.files).slice(0, maxFiles).forEach((file) => trimmed.items.add(file));
+                fileInput.files = trimmed.files;
+                window.alert(`You can attach up to ${maxFiles} files. Only the first ${maxFiles} were kept.`);
+            }
+            uploadText.textContent = fileInput.files.length > 0
+                ? `${fileInput.files.length} file(s) selected`
+                : 'Upload Media (up to 4 files)';
+        });
+    })();
+</script>
+<script src="../shared-js/notifications.js" defer></script>
+<script src="../shared-js/navbar-user-menu.js" defer></script>
 </body>
 
 </html>
