@@ -401,3 +401,12 @@ INSERT INTO audit_logs (user_id, action, entity_type, entity_id, description, ip
 (1, 'Create Thread', 'thread', 6, 'Created thread: Quiapo Stalled Delivery Truck Blocking Lane.', '10.0.0.193', '2026-07-23 16:20:00'),
 (7, 'Create Thread', 'thread', 7, 'Created thread: LRT-1 Service Disruption Near Taft Station.', '10.0.0.190', '2026-07-24 06:45:00'),
 (8, 'Create Thread', 'thread', 8, 'Created thread: Broken Traffic Light at Ortigas-Meralco Junction.', '10.0.0.141', '2026-07-25 17:10:00');
+
+/*
+10. ADVISORIES (4 total)
+*/
+INSERT INTO advisories (posted_by, location_id, title, content, created_at) VALUES
+(7, 8, 'Ongoing LRT-1 Signal Maintenance Near Taft Ave', 'MMDA and LRTA crews are conducting signal maintenance near Taft Avenue through the week. Expect intermittent train slowdowns during rush hours.', '2026-07-27 07:00:00'),
+(8, 80, 'Lane Closure Along Ortigas Avenue', 'One lane along Ortigas Avenue near the Meralco intersection will be closed for traffic light repairs until further notice. Please use alternate routes during peak hours.', '2026-07-28 08:00:00'),
+(2, 115, 'Marikina Riverbanks Road Narrowed for Construction', 'The riverbanks road is temporarily narrowed to a single lane due to ongoing reinforcement work. Motorists are advised to allot extra travel time.', '2026-07-22 09:00:00'),
+(1, NULL, 'City-wide Heavy Rainfall Advisory', 'PAGASA has issued a heavy rainfall warning affecting Metro Manila for the next 24 hours. Expect possible flooding in low-lying areas; commute with caution.', '2026-07-23 05:00:00');

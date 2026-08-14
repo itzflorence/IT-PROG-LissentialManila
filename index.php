@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/thread-query.php';
 require_once __DIR__ . '/includes/report-feed.php';
+require_once __DIR__ . '/includes/advisory-query.php';
 
 function escape_html(?string $value): string {
     return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
@@ -47,6 +48,7 @@ $categories = [];
 $reports = [];
 $mediaByReport = [];
 $activeThreads = [];
+$advisories = [];
 $reportLoadError = null;
 
 try {
@@ -56,6 +58,7 @@ try {
     $reports = $reportData['reports'];
     $mediaByReport = $reportData['mediaByReport'];
     $activeThreads = thread_fetch_all($db, 'Active', '');
+    $advisories = fetch_active_advisories($db);
 } catch (Throwable $error) {
     $reportLoadError = $error->getMessage();
 }
@@ -162,7 +165,7 @@ try {
                 <span class="sidebar-title">FEED</span>
                 <div class="sidebar-options">
                     <a href="index.php">All Reports</a>
-                    <a href="#">Official Advisories</a>
+                    <a href="#advisories-section">Official Advisories</a>
                 </div>
                 <hr>
             </div>
@@ -255,6 +258,32 @@ try {
 
     <div class="main-wrapper">
         <main>
+            <?php if ($advisories !== []): ?>
+                <section id="advisories-section" class="advisories-panel">
+                    <div class="advisories-panel__header">
+                        <i class="fa-solid fa-bullhorn"></i>
+                        <h2>Official Advisories</h2>
+                    </div>
+                    <?php foreach ($advisories as $advisory): ?>
+                        <?php
+                        $advisoryAuthor = trim((string) ($advisory['username'] ?? ''));
+                        if ($advisoryAuthor === '') {
+                            $advisoryAuthor = trim((string) ($advisory['first_name'] ?? '') . ' ' . (string) ($advisory['last_name'] ?? ''));
+                        }
+                        ?>
+                        <article class="advisory-card">
+                            <div class="advisory-card__meta">
+                                <span><i class="fa-solid fa-location-dot"></i> <?php echo escape_html(advisory_location_label($advisory)); ?></span>
+                                <span><?php echo escape_html(relative_time_label((string) ($advisory['created_at'] ?? ''))); ?></span>
+                            </div>
+                            <h3><?php echo escape_html((string) ($advisory['title'] ?? '')); ?></h3>
+                            <p><?php echo escape_html((string) ($advisory['content'] ?? '')); ?></p>
+                            <span class="advisory-card__author">&mdash; <?php echo escape_html($advisoryAuthor !== '' ? $advisoryAuthor : 'Official'); ?></span>
+                        </article>
+                    <?php endforeach; ?>
+                </section>
+            <?php endif; ?>
+
             <form method="get" class="filter">
                 <div class="filter-group">
                     <label for="status-filter">Status:</label>
@@ -357,24 +386,19 @@ try {
                                 <span class="post-description"><?php echo escape_html((string) ($report['description'] ?? '')); ?></span>
                             </div>
 
+                            <?php if ($mediaItems !== []): ?>
                             <div class="post-media-carousel">
                                 <div class="carousel-container">
-                                    <?php if ($mediaItems === []): ?>
+                                    <?php foreach ($mediaItems as $media): ?>
+                                        <?php $mediaPath = normalize_media_url((string) ($media['file_url'] ?? '')); ?>
                                         <div class="carousel-slide">
-                                            <img src="assets/report_media/media1-1.jfif" alt="No media attached">
+                                            <?php if (($media['file_type'] ?? 'photo') === 'video'): ?>
+                                                <video src="<?php echo escape_html($mediaPath); ?>" controls muted playsinline></video>
+                                            <?php else: ?>
+                                                <img src="<?php echo escape_html($mediaPath); ?>" alt="Report attachment">
+                                            <?php endif; ?>
                                         </div>
-                                    <?php else: ?>
-                                        <?php foreach ($mediaItems as $media): ?>
-                                            <?php $mediaPath = normalize_media_url((string) ($media['file_url'] ?? '')); ?>
-                                            <div class="carousel-slide">
-                                                <?php if (($media['file_type'] ?? 'photo') === 'video'): ?>
-                                                    <video src="<?php echo escape_html($mediaPath); ?>" controls muted playsinline></video>
-                                                <?php else: ?>
-                                                    <img src="<?php echo escape_html($mediaPath); ?>" alt="Report attachment">
-                                                <?php endif; ?>
-                                            </div>
-                                        <?php endforeach; ?>
-                                    <?php endif; ?>
+                                    <?php endforeach; ?>
                                 </div>
 
                                 <?php if (count($mediaItems) > 1): ?>
@@ -386,6 +410,7 @@ try {
                                     </button>
                                 <?php endif; ?>
                             </div>
+                            <?php endif; ?>
 
                             <div class="post-buttons">
                                 <div class="post-buttons-left">
